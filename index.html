@@ -2821,6 +2821,7 @@ function kmPost(action,payload){
 let kmLastErr=0;
 function kmHandleErr(e,quiet){
   if(e&&e.code==='bad_code'){kmLogout('팀 코드가 바뀌었습니다. 새 팀 코드로 다시 들어와 주세요.');return}
+  if(e&&e.code==='bad_action'){kmToast('구글 시트의 스크립트가 예전 버전이라 저장하지 못했습니다. 관리자가 Apps Script를 새 Code.gs로 바꾸고 새 버전으로 배포해야 합니다.',true);return}
   if(quiet&&Date.now()-kmLastErr<60000)return;
   kmLastErr=Date.now();
   kmToast(quiet?'공용 저장소에 연결하지 못했습니다. 인터넷 연결을 확인하세요.':'저장하지 못했습니다. 인터넷 연결을 확인하고 다시 해 주세요.',true);
@@ -3076,7 +3077,7 @@ function kmRenderDataTop(){
     '<div class="km-import"><div><div class="n">척척박사 재고·재고 이력</div><div class="h">척척박사 서버에 있던 공용 재고 (한 명만 하면 됩니다)</div></div><button class="km-btn" id="km-imp-fb" onclick="kmImportFirebase()">가져오기</button></div>'+
     '<div class="km-import"><div><div class="n">이 기기의 척척박사 거래처·견적 기록</div><div class="h">거래처 '+lc.clients+'곳 · 견적 '+lc.sales+'건 (기기마다 따로 있던 내용)</div></div><button class="km-btn" id="km-imp-local" onclick="kmImportLocal()" '+(lc.clients+lc.sales?'':'disabled')+'>가져오기</button></div>'+
     '<div class="km-import"><div><div class="n">이 기기의 마진계산기 현장</div><div class="h">이 기기에만 저장된 현장 '+lc.projects+'건</div></div><button class="km-btn" id="km-imp-mg" onclick="kmImportMargin()" '+(lc.projects?'':'disabled')+'>가져오기</button></div>'+
-    '<div class="km-msg" id="km-impmsg" style="margin:8px 0 0" role="status"></div>'+
+    '<div class="km-msg'+(kmImpLast.err?' err':'')+'" id="km-impmsg" style="margin:8px 0 0" role="status">'+kmEsc(kmImpLast.t)+'</div>'+
   '</div></div>';
 }
 function kmSyncText(){
@@ -3091,7 +3092,8 @@ function kmLocalCounts(){
   const a=kmLget('om_cl_film')||[],b=kmLget('om_cl_door')||[],s=kmLget('om_sales')||[],p=kmLget('furn-margin-projects-local')||[];
   return{clients:(Array.isArray(a)?a.length:0)+(Array.isArray(b)?b.length:0),sales:Array.isArray(s)?s.length:0,projects:Array.isArray(p)?p.length:0};
 }
-function kmImpMsg(t,err){const el=document.getElementById('km-impmsg');if(el){el.textContent=t;el.className='km-msg'+(err?' err':'')}}
+let kmImpLast={t:'',err:false};
+function kmImpMsg(t,err){kmImpLast={t,err:!!err};const el=document.getElementById('km-impmsg');if(el){el.textContent=t;el.className='km-msg'+(err?' err':'')}}
 async function kmImportFirebase(){
   const btn=document.getElementById('km-imp-fb');btn.disabled=true;kmImpMsg('척척박사 재고를 불러오는 중…');
   try{
@@ -3103,7 +3105,7 @@ async function kmImportFirebase(){
     kmImpMsg('재고 '+stock.length+'개 색상, 이력 '+log.length+'건을 올리는 중…');
     const ok1=stock.length?await kmPost('sync',{collection:'stock',upserts:stock,deletes:[],onlyNew:true}):true;
     const ok2=log.length?await kmPost('sync',{collection:'stockLog',upserts:log,deletes:[],onlyNew:true}):true;
-    kmImpMsg(ok1&&ok2?'재고 '+stock.length+'개 색상과 이력 '+log.length+'건을 가져왔습니다.':'일부를 올리지 못했습니다. 다시 눌러 주세요.',!(ok1&&ok2));
+    kmImpMsg(ok1&&ok2?'재고 '+stock.length+'개 색상과 이력 '+log.length+'건을 가져왔습니다.':'올리지 못했습니다. 구글 시트 스크립트가 최신 버전인지 확인한 뒤 다시 눌러 주세요.',!(ok1&&ok2));
   }catch(e){kmImpMsg('척척박사 재고를 불러오지 못했습니다. 인터넷 연결을 확인하세요.',true)}
   btn.disabled=false;
 }
