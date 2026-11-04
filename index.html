@@ -522,6 +522,45 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
 
 .mg-rank{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:7px;background:#EAF1F8;color:var(--br);font-size:12px;font-weight:800;margin-right:8px;vertical-align:1px;}
 #mg-manager{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B95A1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:18px;padding-right:38px;}
+
+/* 회의용 보고서 (A4 가로) */
+.mg-repbtn{width:100%;height:50px;margin:0 0 12px;font-size:15px;}
+.mg-rep-actions{display:flex;gap:8px;padding:14px 16px 8px;}
+.mg-rep-actions .km-btn{flex:1;height:48px;}
+.mg-rep-scroll{overflow:auto;padding:0 16px 40px;}
+.mg-rep{width:1080px;background:#fff;color:#191F28;padding:28px 32px;font-family:var(--fn);letter-spacing:-.2px;box-shadow:0 2px 12px rgba(0,0,0,.08);transform-origin:top left;}
+.mg-rep h1{font-size:22px;font-weight:800;margin:0;letter-spacing:-.5px;}
+.mg-rep .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1B3A5C;padding-bottom:10px;margin-bottom:14px;}
+.mg-rep .hd .meta{font-size:12px;color:#4E5968;text-align:right;line-height:1.6;}
+.mg-rep .scope{font-size:13px;color:#4E5968;margin-top:4px;}
+.mg-rep .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;}
+.mg-rep .kpi{border:1px solid #E5E8EB;border-radius:8px;padding:8px 12px;}
+.mg-rep .kpi .l{font-size:11px;color:#8B95A1;font-weight:600;}
+.mg-rep .kpi .v{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px;}
+.mg-rep table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;}
+.mg-rep th{background:#F2F4F6;color:#4E5968;font-weight:700;text-align:left;padding:5px 6px;border-bottom:1px solid #D1D6DB;white-space:nowrap;}
+.mg-rep td{padding:4px 6px;border-bottom:1px solid #F2F4F6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;}
+.mg-rep .r{text-align:right;}
+.mg-rep tfoot td{font-weight:800;border-top:2px solid #1B3A5C;border-bottom:none;background:#FAFBFC;}
+.mg-rep .neg{color:#D92D20;font-weight:700;}
+.mg-rep .low{color:#B54708;font-weight:700;}
+.mg-rep .main{font-size:12px;}
+.mg-rep.s2 .main{font-size:10.5px;} .mg-rep.s2 .main td{padding:3px 5px;}
+.mg-rep.s3 .main{font-size:9px;} .mg-rep.s3 .main td{padding:2px 4px;}
+.mg-rep .bottom{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;}
+.mg-rep .box h2{font-size:13px;font-weight:800;margin:0 0 6px;color:#1B3A5C;}
+.mg-rep .box table{font-size:11px;}
+.mg-rep .note{font-size:10.5px;color:#8B95A1;margin-top:10px;}
+#km-print{display:none;}
+@media print{
+  @page{size:A4 landscape;margin:8mm;}
+  html,body{background:#fff!important;max-width:none!important;width:auto!important;margin:0!important;padding:0!important;min-height:0!important;}
+  :root{padding:0!important;}
+  body>*:not(#km-print){display:none!important;}
+  #km-print{display:block!important;break-inside:avoid;page-break-inside:avoid;}
+  #km-print .mg-rep{box-shadow:none;transform:none!important;width:1080px;padding:0;}
+  #km-print *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -670,6 +709,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
         <input id="mg-fsearch" type="search" placeholder="현장명·업체·담당자 검색" oninput="mgRenderList()">
       </div>
       <div class="mg-tiles" id="mg-listsum"></div>
+      <button type="button" class="km-btn pri mg-repbtn" onclick="mgOpenReport()">회의용 보고서 만들기 (A4 한 장)</button>
       <div id="mg-list"></div>
     </div>
 
@@ -697,6 +737,24 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
     </div>
   </div>
 </div>
+
+<!-- 회의용 보고서 -->
+<div class="ovl" id="mg-rep-ovl">
+  <div class="modal">
+    <div class="modal-bar">
+      <button class="cls-btn" onclick="closeOvl('mg-rep-ovl')">‹ 닫기</button>
+      <h3>회의용 보고서</h3>
+      <span style="width:60px"></span>
+    </div>
+    <div class="mg-rep-actions">
+      <button type="button" class="km-btn pri" onclick="mgPrintReport()">인쇄 · PDF 저장</button>
+      <button type="button" class="km-btn" id="mg-repimg" onclick="mgSaveReportImage()">이미지 저장</button>
+    </div>
+    <p class="km-hint" style="padding:0 16px 10px">지금 현장 목록에 걸어 둔 조건(기간·업체·담당자·검색)대로 만들었습니다. PDF로 저장하려면 인쇄 화면에서 대상을 ‘PDF로 저장’으로 고르세요.</p>
+    <div class="mg-rep-scroll"><div class="mg-rep" id="mg-rep"></div></div>
+  </div>
+</div>
+
 
 <!-- 필름 탭 -->
 <div class="tp" id="tp-film">
@@ -3233,10 +3291,14 @@ function mgRender(){
   mgRenderList();mgRenderMonth();mgRenderComp();mgRenderMgr();
 }
 function mgInPeriod(p,y,m){const d=String(p.date||'');return(!y||d.startsWith(y))&&(!m||d.slice(5,7)===m)}
-function mgRenderList(){
+function mgListRows(){
   const fc=mg$('fcompany').value,fy=mg$('fyear').value,fm=mg$('fmonth').value,fmg=mg$('fmanager').value,q=mg$('fsearch').value.trim().toLowerCase();
-  const rows=mgProjects().filter(p=>(!fc||p.company===fc)&&(!fmg||p.manager===fmg)&&mgInPeriod(p,fy,fm)&&(!q||String(p.site||'').toLowerCase().includes(q)||String(p.company||'').toLowerCase().includes(q)||String(p.manager||'').toLowerCase().includes(q)))
+  return mgProjects().filter(p=>(!fc||p.company===fc)&&(!fmg||p.manager===fmg)&&mgInPeriod(p,fy,fm)&&(!q||String(p.site||'').toLowerCase().includes(q)||String(p.company||'').toLowerCase().includes(q)||String(p.manager||'').toLowerCase().includes(q)))
     .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));
+}
+function mgRenderList(){
+  const rows=mgListRows();
+  mg$('listsum').nextElementSibling.disabled=!rows.length;
   const sc=rows.reduce((a,p)=>a+Number(p.contract||0),0),sm=rows.reduce((a,p)=>a+Number(p.margin||0),0);
   mg$('listsum').innerHTML=
     '<div class="mg-tile"><div class="l">현장 수</div><div class="v">'+rows.length+'건</div></div>'+
@@ -3348,6 +3410,83 @@ function mgGoManager(name,org){
   if(org&&mgIsAdmin()){mg$('org').value=org;kmLset('km-mg-org',org)}
   mg$('fcompany').value='';mg$('fyear').value=mg$('ryear').value;mg$('fmonth').value=mg$('rmonth').value;mg$('fsearch').value='';
   mgRender();mg$('fmanager').value=name;mgView('list');mgRenderList();window.scrollTo(0,0);
+}
+// ===== 회의용 보고서 =====
+function mgReportHTML(){
+  const rows=mgListRows().slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
+  const fy=mg$('fyear').value,fm=mg$('fmonth').value,fc=mg$('fcompany').value,fmg=mg$('fmanager').value,q=mg$('fsearch').value.trim();
+  const org=mgIsAdmin()?(mgOrgSel()||'전체 회사'):mgMyOrg(),showOrg=mgIsAdmin()&&!mgOrgSel();
+  const period=fy?(fy+'년'+(fm?' '+parseInt(fm,10)+'월':'')):(fm?parseInt(fm,10)+'월(전체 연도)':'전체 기간');
+  const cond=[org,period,fc&&('업체: '+fc),fmg&&('담당: '+fmg),q&&('검색: '+q)].filter(Boolean).map(kmEsc).join(' · ');
+  const sum=k=>rows.reduce((a,p)=>a+Number(p[k]||0),0);
+  const tc=sum('contract'),to=sum('cost'),tm=sum('margin'),rate=tc>0?tm/tc*100:null;
+  const rcls=(m,c)=>!(c>0)?'':(m<0?'neg':(m/c*100<10?'low':''));
+  const rtxt=(m,c)=>c>0?(m/c*100).toFixed(1)+'%':'–';
+  const now=new Date(),stamp=mgToday()+' '+kmTime(now);
+  const body=rows.map((p,i)=>'<tr><td class="r">'+(i+1)+'</td><td>'+kmEsc(p.date)+'</td>'+(showOrg?'<td>'+kmEsc(p.org)+'</td>':'')+
+    '<td>'+kmEsc(p.company)+'</td><td>'+kmEsc(p.site)+'</td><td>'+kmEsc(p.manager||'-')+'</td>'+
+    '<td class="r">'+kmWon(p.contract)+'</td><td class="r">'+kmWon(p.cost)+'</td><td class="r '+rcls(Number(p.margin),Number(p.contract))+'">'+kmWon(p.margin)+'</td>'+
+    '<td class="r '+rcls(Number(p.margin),Number(p.contract))+'">'+rtxt(Number(p.margin),Number(p.contract))+'</td></tr>').join('');
+  // 담당자별
+  const mm=new Map();rows.forEach(p=>{const k=p.manager||'(미지정)';const g=mm.get(k)||{n:0,c:0,m:0};g.n++;g.c+=Number(p.contract||0);g.m+=Number(p.margin||0);mm.set(k,g)});
+  const mgr=[...mm.entries()].sort((a,b)=>b[1].m-a[1].m).slice(0,8);
+  // 점검 필요 현장 (적자 또는 이익률 10% 미만), 이익률 낮은 순
+  const warn=rows.filter(p=>Number(p.contract)>0&&Number(p.margin)/Number(p.contract)<0.1).sort((a,b)=>Number(a.margin)/Number(a.contract)-Number(b.margin)/Number(b.contract)).slice(0,8);
+  const size=rows.length>32?'s3':rows.length>18?'s2':'';
+  return {size,count:rows.length,html:
+    '<div class="hd"><div><h1>현장별 마진 보고서</h1><div class="scope">'+cond+'</div></div>'+
+    '<div class="meta">작성 '+kmEsc(stamp)+'<br>작성자 '+kmEsc(KM.cfg?.name||'')+'</div></div>'+
+    '<div class="kpis">'+
+      '<div class="kpi"><div class="l">현장 수</div><div class="v">'+rows.length+'건</div></div>'+
+      '<div class="kpi"><div class="l">총공사금액</div><div class="v">'+kmWon(tc)+'</div></div>'+
+      '<div class="kpi"><div class="l">비용 합계</div><div class="v">'+kmWon(to)+'</div></div>'+
+      '<div class="kpi"><div class="l">순마진 합계</div><div class="v'+(tm<0?' neg':'')+'">'+kmWon(tm)+'</div></div>'+
+      '<div class="kpi"><div class="l">이익률</div><div class="v'+(rate!==null&&rate<0?' neg':'')+'">'+(rate===null?'–':rate.toFixed(1)+'%')+'</div></div>'+
+    '</div>'+
+    '<table class="main"><thead><tr><th class="r">No</th><th>날짜</th>'+(showOrg?'<th>회사</th>':'')+'<th>업체</th><th>현장명</th><th>담당자</th><th class="r">총공사금액</th><th class="r">비용</th><th class="r">순마진</th><th class="r">이익률</th></tr></thead>'+
+    '<tbody>'+(body||'<tr><td colspan="10" style="text-align:center;padding:20px;color:#8B95A1">조건에 맞는 현장이 없습니다</td></tr>')+'</tbody>'+
+    '<tfoot><tr><td colspan="'+(showOrg?6:5)+'">합계 '+rows.length+'건</td><td class="r">'+kmWon(tc)+'</td><td class="r">'+kmWon(to)+'</td><td class="r'+(tm<0?' neg':'')+'">'+kmWon(tm)+'</td><td class="r">'+(rate===null?'–':rate.toFixed(1)+'%')+'</td></tr></tfoot></table>'+
+    '<div class="bottom">'+
+      '<div class="box"><h2>담당자별 요약</h2><table><thead><tr><th>담당자</th><th class="r">현장</th><th class="r">공사금액</th><th class="r">순마진</th><th class="r">이익률</th></tr></thead><tbody>'+
+        (mgr.map(([n,g])=>'<tr><td>'+kmEsc(n)+'</td><td class="r">'+g.n+'건</td><td class="r">'+kmWon(g.c)+'</td><td class="r '+rcls(g.m,g.c)+'">'+kmWon(g.m)+'</td><td class="r '+rcls(g.m,g.c)+'">'+rtxt(g.m,g.c)+'</td></tr>').join('')||'<tr><td colspan="5">-</td></tr>')+'</tbody></table></div>'+
+      '<div class="box"><h2>점검이 필요한 현장 (적자 · 이익률 10% 미만)</h2><table><thead><tr><th>현장명</th><th>담당자</th><th class="r">순마진</th><th class="r">이익률</th></tr></thead><tbody>'+
+        (warn.map(p=>'<tr><td>'+kmEsc(p.site)+'</td><td>'+kmEsc(p.manager||'-')+'</td><td class="r '+rcls(Number(p.margin),Number(p.contract))+'">'+kmWon(p.margin)+'</td><td class="r '+rcls(Number(p.margin),Number(p.contract))+'">'+rtxt(Number(p.margin),Number(p.contract))+'</td></tr>').join('')||'<tr><td colspan="4" style="color:#2F7D4F">해당 현장 없음</td></tr>')+'</tbody></table></div>'+
+    '</div>'+
+    '<div class="note">이익률 = 순마진 ÷ 총공사금액. 빨간색은 적자, 주황색은 이익률 10% 미만.'+(rows.length>45?' 현장이 많아 글씨가 작을 수 있습니다. 기간을 나눠 출력하면 더 읽기 쉽습니다.':'')+'</div>'};
+}
+function mgFitReport(){
+  const el=mg$('rep'),box=el.parentElement,w=box.clientWidth-32;
+  const sc=Math.min(1,w/1080);el.style.transform='scale('+sc+')';
+  el.parentElement.style.height=(el.offsetHeight*sc+40)+'px';
+}
+function mgOpenReport(){
+  const r=mgReportHTML();
+  const el=mg$('rep');el.className='mg-rep '+r.size;el.innerHTML=r.html;
+  document.getElementById('mg-rep-ovl').classList.add('show');
+  requestAnimationFrame(mgFitReport);
+}
+window.addEventListener('resize',()=>{if(document.getElementById('mg-rep-ovl')?.classList.contains('show'))mgFitReport()});
+function mgPrintReport(){
+  let pr=document.getElementById('km-print');
+  if(!pr){pr=document.createElement('div');pr.id='km-print';document.body.appendChild(pr)}
+  const el=mg$('rep');pr.innerHTML='<div class="'+el.className+'">'+el.innerHTML+'</div>';
+  // A4 가로 한 장(인쇄 영역 약 281×194mm = 1062×733px)에 맞게 줄이기
+  const h=el.offsetHeight-56;   // 화면용 여백 제외
+  pr.firstChild.style.zoom=String(Math.min(1062/1080,733/Math.max(1,h))*0.93); // 프린터 여백 차이를 감안해 조금 더 줄임
+  setTimeout(()=>window.print(),50);
+}
+async function mgSaveReportImage(){
+  const btn=document.getElementById('mg-repimg');
+  if(typeof html2canvas!=='function'){kmToast('이미지 저장 기능을 불러오지 못했습니다. 인쇄 · PDF 저장을 이용하세요.',true);return}
+  btn.disabled=true;btn.textContent='만드는 중…';
+  const el=mg$('rep'),t=el.style.transform;el.style.transform='none';
+  try{
+    const canvas=await html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true,scrollY:0,windowWidth:1200});
+    const a=document.createElement('a');a.href=canvas.toDataURL('image/png');
+    a.download='현장별_마진보고서_'+mgToday()+'.png';document.body.appendChild(a);a.click();a.remove();
+    kmToast('보고서 이미지를 저장했습니다.');
+  }catch(e){kmToast('이미지를 만들지 못했습니다. 인쇄 · PDF 저장을 이용하세요.',true)}
+  finally{el.style.transform=t;btn.disabled=false;btn.textContent='이미지 저장';}
 }
 function mgPickOrg(o){mg$('org').value=o;mgOrgChanged();window.scrollTo(0,0)}
 function mgGoMonth(y,m){mg$('fcompany').value='';mg$('fyear').value=y;mg$('fmonth').value=m;mg$('fsearch').value='';mg$('fmanager').value='';mgView('list');mgRenderList();window.scrollTo(0,0)}
