@@ -209,6 +209,21 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
 #grade-btn-1,#grade-btn-2{display:flex;align-items:center;justify-content:center;padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;transition:all .15s;}
 
 /* ===== 키친매니저 추가 ===== */
+[hidden]{display:none!important;}
+.km-home-ttl{font-size:13px;font-weight:700;color:var(--g5);margin:0 2px 10px;}
+.km-home-card{width:100%;display:flex;align-items:center;gap:14px;padding:18px 16px;background:#fff;border:1.5px solid var(--bd);border-radius:14px;box-shadow:var(--sh);margin-bottom:12px;text-align:left;font-family:inherit;cursor:pointer;color:inherit;}
+.km-home-card:active{background:var(--g0);}
+.km-home-card:focus-visible{outline:2px solid var(--or);outline-offset:2px;}
+.km-home-card .ic{width:54px;height:54px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;background:var(--br);}
+.km-home-card.c-film .ic{background:var(--or);}
+.km-home-card.c-door .ic{background:var(--br-mid);}
+.km-home-card .tx{display:flex;flex-direction:column;min-width:0;}
+.km-home-card .t{font-size:19px;font-weight:900;color:var(--br);}
+.km-home-card .d{font-size:12px;color:var(--g5);margin-top:3px;line-height:1.45;}
+.km-home-card .s{font-size:12px;font-weight:700;color:var(--or);margin-top:6px;}
+.km-home-card .s:empty{display:none;}
+.km-home-card .ch{margin-left:auto;font-size:28px;font-weight:300;color:var(--bd);line-height:1;}
+.bn.home{flex:0 0 58px;color:rgba(255,255,255,.85);}
 .pw-logo{width:52px;height:52px;margin:0 auto 10px;border-radius:14px;background:var(--br);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;letter-spacing:-.5px;border:2px solid var(--or);}
 .pw-label{display:block;text-align:left;font-size:11px;font-weight:700;color:var(--g5);margin:6px 0 4px;letter-spacing:.3px;}
 .pw-field{width:100%;padding:12px 13px;border:1.5px solid var(--bd);border-radius:10px;font-size:15px;font-family:inherit;background:#fff;outline:none;color:var(--g9);}
@@ -324,6 +339,44 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
 
 <div id="app">
 
+<!-- 첫 화면 -->
+<div class="tp" id="tp-home">
+  <div class="th"><div class="th-row">
+    <div class="th-av" style="font-size:13px;font-weight:900;color:#fff">KM</div>
+    <div><div class="th-ttl">키친매니저</div><div class="th-sub" id="home-sub">오션메이드 업무 앱</div></div>
+  </div></div>
+  <div class="container" style="padding-top:18px;padding-bottom:40px;">
+    <div class="km-home-ttl">어떤 업무를 할까요?</div>
+    <button type="button" class="km-home-card c-mg" onclick="kmGo('margin')">
+      <span class="ic">💰</span>
+      <span class="tx"><span class="t">공사 마진</span><span class="d">PB 소요량 계산 · 현장 목록 · 업체별 분석</span><span class="s" id="home-s-margin"></span></span>
+      <span class="ch">›</span>
+    </button>
+    <button type="button" class="km-home-card c-film" onclick="kmGo('film')">
+      <span class="ic">🎨</span>
+      <span class="tx"><span class="t">필름</span><span class="d">필름 견적서 · 필름 단가표 · 재고 관리 · 데이터</span><span class="s" id="home-s-film"></span></span>
+      <span class="ch">›</span>
+    </button>
+    <button type="button" class="km-home-card c-door" onclick="kmGo('door')">
+      <span class="ic">🚪</span>
+      <span class="tx"><span class="t">생산도어</span><span class="d">생산도어 견적서 · 생산도어 단가표</span><span class="s" id="home-s-door"></span></span>
+      <span class="ch">›</span>
+    </button>
+    <div class="card" style="margin-top:18px">
+      <div class="card-header"><div class="icon">👤</div><h2>내 정보</h2></div>
+      <div class="card-body">
+        <div class="field"><label for="km-myname">이름 (저장한 사람으로 기록됩니다)</label>
+          <div class="km-row"><input id="km-myname" type="text" style="flex:1;min-width:0"><button type="button" class="km-btn pri" onclick="kmRename()">변경</button></div></div>
+        <div class="km-hint" id="km-syncinfo"></div>
+        <div class="km-row" style="margin-top:10px">
+          <button type="button" class="km-btn" onclick="kmLoad().then(()=>kmToast('최신 내용을 불러왔습니다.'))">지금 새로고침</button>
+          <button type="button" class="km-btn danger" onclick="kmLogout()">로그아웃</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 공사 마진 탭 -->
 <div class="tp" id="tp-margin">
   <div class="th"><div class="th-row">
@@ -332,11 +385,6 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
     <button class="th-btn" onclick="mgNew()">＋ 새 현장</button>
   </div></div>
   <div class="container" style="padding-top:14px;padding-bottom:90px;">
-    <div class="km-seg" id="mg-seg">
-      <button type="button" data-v="calc" class="on" onclick="mgView('calc')">계산</button>
-      <button type="button" data-v="list" onclick="mgView('list')">현장 목록</button>
-      <button type="button" data-v="comp" onclick="mgView('comp')">업체별 분석</button>
-    </div>
 
     <div id="mg-v-calc">
       <div class="mg-editing" id="mg-editbar" hidden>
@@ -779,15 +827,7 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
   </div>
 </div>
 
-<nav id="bnav">
-  <button class="bn on" id="bn-film" onclick="switchTab('film')">필름<br>견적서</button>
-  <button class="bn" id="bn-door" onclick="switchTab('door')">생산도어<br>견적서</button>
-  <button class="bn" id="bn-margin" onclick="switchTab('margin')">공사<br>마진</button>
-  <button class="bn" id="bn-film-price" onclick="switchTab('film-price')">필름<br>단가표</button>
-  <button class="bn" id="bn-price" onclick="switchTab('price')">생산도어<br>단가표</button>
-  <button class="bn" id="bn-stock" onclick="switchTab('stock')">재고<br>관리</button>
-  <button class="bn" id="bn-data" onclick="switchTab('data')">데이터</button>
-</nav>
+<nav id="bnav" aria-label="메뉴"></nav>
 
 </div>
 <script>
@@ -2758,6 +2798,7 @@ function kmRefreshUI(){
   try{mgRender()}catch(e){console.error(e)}
   try{if(KM.tab==='stock')renderStock()}catch(e){}
   try{if(KM.tab==='data')renderData()}catch(e){}
+  try{if(KM.tab==='home')kmRenderHome()}catch(e){}
 }
 
 async function kmLoad(){
@@ -2912,7 +2953,7 @@ async function mgDelete(){
 function mgView(v){
   mgCurView=v;
   ['calc','list','comp'].forEach(k=>mg$('v-'+k).hidden=k!==v);
-  document.querySelectorAll('#mg-seg button').forEach(b=>b.className=b.dataset.v===v?'on':'');
+  kmRenderNav();
   if(v!=='calc')mgRender();
 }
 function mgRender(){
@@ -3030,12 +3071,6 @@ function kmRenderDataTop(){
       '<td class="amt">'+kmWon(s.total)+'</td></tr>').join('')+'</tbody></table>'
     :'<div class="km-hint">필름·도어 견적서에서 “견적서 보기”를 누르면 여기에 모든 직원의 견적이 쌓입니다.</div>')+
   '</div></div>'+
-  '<div class="card"><div class="card-header"><div class="icon">👤</div><h2>내 정보</h2></div><div class="card-body">'+
-    '<div class="field"><label for="km-myname">이름 (저장한 사람으로 기록됩니다)</label>'+
-    '<div class="km-row"><input id="km-myname" type="text" value="'+kmEsc(KM.cfg?.name||'')+'" style="flex:1;min-width:0"><button class="km-btn pri" onclick="kmRename()">변경</button></div></div>'+
-    '<div class="km-hint" id="km-syncinfo">'+kmSyncText()+'</div>'+
-    '<div class="km-row" style="margin-top:10px"><button class="km-btn" onclick="kmLoad().then(()=>kmToast(\'최신 내용을 불러왔습니다.\'))">지금 새로고침</button><button class="km-btn danger" onclick="kmLogout()">로그아웃</button></div>'+
-  '</div></div>'+
   '<div class="card"><div class="card-header"><div class="icon">📥</div><h2>기존 데이터 가져오기</h2></div><div class="card-body">'+
     '<div class="km-hint" style="margin-bottom:6px">예전 척척박사와 마진계산기에 있던 데이터를 공용 저장소로 옮깁니다. 이미 있는 항목은 건너뛰므로 여러 번 눌러도 중복되지 않습니다.</div>'+
     '<div class="km-import"><div><div class="n">척척박사 재고·재고 이력</div><div class="h">척척박사 서버에 있던 공용 재고 (한 명만 하면 됩니다)</div></div><button class="km-btn" id="km-imp-fb" onclick="kmImportFirebase()">가져오기</button></div>'+
@@ -3050,7 +3085,7 @@ function kmSyncText(){
 function kmRename(){
   const v=document.getElementById('km-myname').value.trim();
   if(!v){kmToast('이름을 입력하세요.',true);return}
-  KM.cfg.name=v;kmLset('km-auth',KM.cfg);kmToast('이름을 '+v+'(으)로 바꿨습니다.');
+  KM.cfg.name=v;kmLset('km-auth',KM.cfg);kmToast('이름을 '+v+'(으)로 바꿨습니다.');kmRenderHome();
 }
 function kmLocalCounts(){
   const a=kmLget('om_cl_film')||[],b=kmLget('om_cl_door')||[],s=kmLget('om_sales')||[],p=kmLget('furn-margin-projects-local')||[];
@@ -3096,20 +3131,63 @@ async function kmImportMargin(){
 // =====================================================================
 // ===== 로그인 · 시작 =====
 // =====================================================================
-const TABS=['film','door','margin','film-price','price','stock','data'];
+const TABS=['home','margin','film','film-price','stock','data','door','price'];
+// 업무별 하단 메뉴
+const KM_GROUPS={
+  margin:[{k:'m-calc',l:'계산'},{k:'m-list',l:'현장<br>목록'},{k:'m-comp',l:'업체별<br>분석'}],
+  film:[{k:'film',l:'필름<br>견적서'},{k:'film-price',l:'필름<br>단가표'},{k:'stock',l:'재고<br>관리'},{k:'data',l:'데이터'}],
+  door:[{k:'door',l:'생산도어<br>견적서'},{k:'price',l:'생산도어<br>단가표'}]
+};
+function kmGroupOf(tab){if(tab==='margin')return'margin';if(['film','film-price','stock','data'].includes(tab))return'film';if(['door','price'].includes(tab))return'door';return'home'}
+let kmNavGroup=null;
+function kmRenderNav(){
+  const nav=document.getElementById('bnav');if(!nav)return;
+  const g=kmGroupOf(KM.tab);
+  nav.hidden=g==='home';
+  if(g!==kmNavGroup){
+    kmNavGroup=g;
+    nav.innerHTML=g==='home'?'':'<button class="bn home" type="button" onclick="switchTab(\'home\')">홈</button>'+
+      KM_GROUPS[g].map(it=>'<button class="bn" type="button" data-k="'+it.k+'" onclick="kmNavClick(\''+it.k+'\')">'+it.l+'</button>').join('');
+  }
+  const cur=g==='margin'?'m-'+mgCurView:KM.tab;
+  nav.querySelectorAll('.bn[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===cur));
+}
+function kmNavClick(k){
+  if(k.startsWith('m-')){if(KM.tab!=='margin')switchTab('margin');mgView(k.slice(2));window.scrollTo(0,0);return}
+  switchTab(k);
+}
+function kmGo(g){
+  if(g==='margin'){switchTab('margin');return}
+  const last=kmLget('km-last-'+g);
+  switchTab(last&&kmGroupOf(last)===g?last:KM_GROUPS[g][0].k);
+}
 function switchTab(name){
-  if(!TABS.includes(name))name='film';
-  TABS.forEach(t=>{
-    const p=document.getElementById('tp-'+t);if(p)p.style.display=t===name?'block':'none';
-    const b=document.getElementById('bn-'+t);if(b)b.className='bn'+(t===name?' on':'');
-  });
-  KM.tab=name;kmLset('km-tab',name);
+  if(!TABS.includes(name))name='home';
+  TABS.forEach(t=>{const p=document.getElementById('tp-'+t);if(p)p.style.display=t===name?'block':'none'});
+  KM.tab=name;
+  const g=kmGroupOf(name);if(g!=='home')kmLset('km-last-'+g,name);
+  kmRenderNav();
+  if(name==='home')kmRenderHome();
   if(name==='data')renderData();
   if(name==='price')renderPriceTable();
   if(name==='film-price')renderFilmPriceTable();
   if(name==='stock')renderStock();
   if(name==='margin')mgRender();
   window.scrollTo(0,0);
+}
+function kmRenderHome(){
+  const ym=mgToday().slice(0,7);
+  const ps=KM.state.projects.filter(p=>String(p.date||'').startsWith(ym));
+  const pm=ps.reduce((a,p)=>a+Number(p.margin||0),0);
+  document.getElementById('home-s-margin').textContent=ps.length?'이번 달 현장 '+ps.length+'건 · 순마진 '+kmWon(pm)+'원':'';
+  const sales=KM.state.sales.filter(x=>String(x.date||'').startsWith(ym));
+  const fs=sales.filter(x=>x.type==='필름').length,ds=sales.filter(x=>x.type==='도어').length;
+  const low=(KM.state.stock||[]).filter(x=>Number(x.qty)>0&&Number(x.qty)<=Number(x.warn)).length;
+  document.getElementById('home-s-film').textContent=[fs?'이번 달 견적 '+fs+'건':'',low?'재고 부족 '+low+'종':''].filter(Boolean).join(' · ');
+  document.getElementById('home-s-door').textContent=ds?'이번 달 견적 '+ds+'건':'';
+  document.getElementById('home-sub').textContent='오션메이드 업무 앱'+(KM.cfg?.name?' · '+KM.cfg.name+'님':'');
+  const nm=document.getElementById('km-myname');if(nm&&document.activeElement!==nm)nm.value=KM.cfg?.name||'';
+  document.getElementById('km-syncinfo').textContent=kmSyncText();
 }
 function renderData(){kmRenderDataTop();renderStockData()}
 
@@ -3142,7 +3220,7 @@ function enterApp(){
   document.getElementById('pw-screen').classList.add('hidden');
   document.getElementById('app').style.display='block';
   if(!KM.started){KM.started=true;initAll();mgInit();}
-  switchTab(kmLget('km-tab')||'film');
+  switchTab('home');
   kmRefreshUI();
 }
 function initAll(){
