@@ -542,17 +542,17 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
     <div class="km-hello"><div class="hi" id="home-hi">안녕하세요</div><div class="sub">오늘 어떤 업무를 할까요?</div></div>
     <button type="button" class="km-home-card c-mg" onclick="kmGo('margin')">
       <span class="ic">💰</span>
-      <span class="tx"><span class="t">공사 마진</span><span class="d">PB 소요량 계산 · 현장 목록 · 업체별 분석</span><span class="s" id="home-s-margin"></span></span>
+      <span class="tx"><span class="t">공사 마진</span><span class="d">PB 소요량 계산 · 현장 목록 · 업체별 분석</span></span>
       <span class="ch">›</span>
     </button>
     <button type="button" class="km-home-card c-film" onclick="kmGo('film')">
       <span class="ic">🎨</span>
-      <span class="tx"><span class="t">필름</span><span class="d">필름 견적서 · 필름 단가표 · 재고 관리 · 데이터</span><span class="s" id="home-s-film"></span></span>
+      <span class="tx"><span class="t">필름</span><span class="d">필름 견적서 · 필름 단가표 · 재고 관리 · 데이터</span></span>
       <span class="ch">›</span>
     </button>
     <button type="button" class="km-home-card c-door" onclick="kmGo('door')">
       <span class="ic">🚪</span>
-      <span class="tx"><span class="t">생산도어</span><span class="d">생산도어 견적서 · 생산도어 단가표</span><span class="s" id="home-s-door"></span></span>
+      <span class="tx"><span class="t">생산도어</span><span class="d">생산도어 견적서 · 생산도어 단가표</span></span>
       <span class="ch">›</span>
     </button>
     <div class="card" style="margin-top:18px">
@@ -3400,15 +3400,6 @@ function switchTab(name){
   window.scrollTo(0,0);
 }
 function kmRenderHome(){
-  const ym=mgToday().slice(0,7);
-  const ps=KM.state.projects.filter(p=>String(p.date||'').startsWith(ym));
-  const pm=ps.reduce((a,p)=>a+Number(p.margin||0),0);
-  document.getElementById('home-s-margin').textContent=ps.length?'이번 달 현장 '+ps.length+'건 · 순마진 '+kmWon(pm)+'원':'';
-  const sales=KM.state.sales.filter(x=>String(x.date||'').startsWith(ym));
-  const fs=sales.filter(x=>x.type==='필름').length,ds=sales.filter(x=>x.type==='도어').length;
-  const low=(KM.state.stock||[]).filter(x=>Number(x.qty)>0&&Number(x.qty)<=Number(x.warn)).length;
-  document.getElementById('home-s-film').textContent=[fs?'이번 달 견적 '+fs+'건':'',low?'재고 부족 '+low+'종':''].filter(Boolean).join(' · ');
-  document.getElementById('home-s-door').textContent=ds?'이번 달 견적 '+ds+'건':'';
   document.getElementById('home-hi').textContent=KM.cfg?.name?KM.cfg.name+'님, 안녕하세요':'안녕하세요';
   document.getElementById('km-myname').textContent=KM.cfg?.name||'';
   document.getElementById('km-syncinfo').textContent=kmSyncText();
