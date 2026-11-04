@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-title" content="키친매니저">
 <meta name="theme-color" content="#1B3A5C">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231B3A5C'/%3E%3Ctext x='32' y='42' font-size='28' font-weight='900' text-anchor='middle' fill='%23E8630A' font-family='sans-serif'%3EKM%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -318,6 +319,185 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
 .km-import .km-btn{white-space:nowrap;flex-shrink:0;}
 .km-import .n{font-size:13px;font-weight:700;color:var(--g9);}
 .km-import .h{font-size:11.5px;color:var(--g5);margin-top:2px;}
+
+/* =====================================================================
+   키친매니저 디자인 정리
+   흰 카드 + 연회색 바탕, 또렷한 글씨 크기, 48px 이상 누르는 영역.
+   브랜드: 남색(--br) 기본, 주황(--or)은 금액·강조에만.
+   ===================================================================== */
+:root{
+  --fn:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
+  --font-main:var(--fn);
+  --km-bg:#F2F4F6; --km-surface:#FFFFFF; --km-text:#191F28; --km-sub:#4E5968; --km-muted:#8B95A1;
+  --km-line:#E5E8EB; --km-field:#F9FAFB; --km-press:#F2F4F6;
+  --km-r:18px; --km-r-sm:12px;
+  --cr:#F6F8FA;
+}
+html{-webkit-text-size-adjust:100%;}
+body{background:var(--km-bg);color:var(--km-text);font-family:var(--fn);font-size:15px;letter-spacing:-.2px;-webkit-font-smoothing:antialiased;}
+button,input,select,textarea{font-family:var(--fn);letter-spacing:-.2px;}
+
+/* ---------- 상단 머리말 ---------- */
+.th{background:rgba(255,255,255,.96);backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);
+  border-bottom:1px solid var(--km-line);padding:12px 20px;top:0;}
+.th-row{gap:12px;min-height:40px;}
+.th-av{display:none;}
+.th-ttl{font-size:19px;font-weight:700;color:var(--km-text);letter-spacing:-.4px;}
+.th-sub{font-size:13px;color:var(--km-muted);margin-top:2px;}
+.th-btn{background:var(--km-press)!important;border:none!important;color:var(--br)!important;height:38px;padding:0 14px;border-radius:10px;font-size:14px;font-weight:600;}
+.th-btn:active{background:var(--km-line)!important;}
+
+/* ---------- 본문 · 카드 ---------- */
+.container{padding:12px 16px 0;}
+.card{background:var(--km-surface);border:none;border-radius:var(--km-r);box-shadow:none;margin-bottom:12px;}
+.card-header{background:none;border:none;padding:20px 20px 4px;gap:8px;border-radius:var(--km-r) var(--km-r) 0 0;}
+.card-header .icon{display:none;}
+.card-header h2{font-size:17px;font-weight:700;color:var(--km-text);letter-spacing:-.3px;}
+.card-body{padding:14px 20px 20px;}
+.field{margin-bottom:16px;}
+.field label{font-size:13px;font-weight:600;color:var(--km-sub);letter-spacing:0;text-transform:none;margin-bottom:8px;}
+.field input,.field select,.mg-in,.mg-pb input,.km-field-like{
+  height:50px;padding:0 14px;border:1px solid var(--km-line);border-radius:var(--km-r-sm);
+  background:var(--km-field);font-size:16px;color:var(--km-text);transition:border-color .15s,background .15s;}
+.field input:focus,.field select:focus,.mg-in:focus,.mg-pb input:focus{border-color:var(--br);background:#fff;outline:none;}
+.field input::placeholder,.mg-in::placeholder,.mg-pb input::placeholder{color:#B0B8C1;}
+.row2{gap:12px;}
+
+/* ---------- 버튼 ---------- */
+.actions{gap:8px;margin:4px 0 16px;}
+.btn-rst{height:56px;padding:0 20px;border:none;border-radius:14px;background:#E8EBEE;color:var(--km-sub);font-size:16px;font-weight:600;}
+.btn-preview,.btn-pv{height:56px;padding:0 20px;border:none;border-radius:14px;background:var(--br);color:#fff;font-size:17px;font-weight:700;box-shadow:none;}
+.btn-rst:active,.btn-preview:active,.btn-pv:active{transform:scale(.98);}
+.btn-pr,.btn-print,.btn-confirm{border-radius:14px!important;min-height:52px;font-size:16px!important;font-weight:700!important;}
+.add-btn{height:54px;padding:0;border:none;border-radius:14px;background:var(--km-press);color:var(--br);font-size:16px;font-weight:600;}
+.add-btn:active{background:var(--km-line);}
+.km-btn{height:44px;padding:0 16px;border:none;border-radius:12px;background:var(--km-press);color:var(--br);font-size:15px;font-weight:600;}
+.km-btn.pri{background:var(--br);color:#fff;}
+.km-btn.danger{background:#FDECEA;color:#D92D20;border:none;}
+.km-btn:active:not(:disabled){filter:brightness(.96);}
+button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:2px;}
+
+/* ---------- 합계 ---------- */
+.total-bar{border:none;border-radius:var(--km-r);padding:20px 22px;margin-bottom:12px;box-shadow:none;background:var(--br);}
+.total-bar .lbl{font-size:15px;font-weight:600;color:rgba(255,255,255,.75);opacity:1;}
+.total-bar .amt{font-size:28px;font-weight:800;color:#fff;letter-spacing:-.6px;font-variant-numeric:tabular-nums;}
+
+/* ---------- 필름 품목 카드 ---------- */
+.item-card{border-radius:16px!important;border:1px solid var(--km-line)!important;box-shadow:none!important;}
+.item-row{padding:16px!important;}
+.item-row-name{font-size:16px!important;font-weight:700!important;color:var(--km-text)!important;}
+.item-row-sub{font-size:13px!important;color:var(--km-muted)!important;}
+.item-row-amt{font-size:17px!important;font-weight:800!important;color:var(--km-text)!important;}
+.sel-block label,.qty-label{font-size:13px!important;font-weight:600!important;color:var(--km-sub)!important;letter-spacing:0!important;text-transform:none!important;}
+.sel-block select,.model-search-input{height:50px!important;border-radius:12px!important;border:1px solid var(--km-line)!important;background:var(--km-field)!important;font-size:16px!important;color:var(--km-text)!important;}
+.qty-btn{min-width:48px;min-height:44px;border-radius:10px!important;}
+.qty-input{font-size:20px!important;font-weight:700!important;}
+
+/* ---------- 하단 메뉴 ---------- */
+#bnav{background:rgba(255,255,255,.97);backdrop-filter:saturate(180%) blur(12px);-webkit-backdrop-filter:saturate(180%) blur(12px);
+  border-top:1px solid var(--km-line);box-shadow:none;padding-bottom:env(safe-area-inset-bottom,0px);}
+.bn{gap:3px;padding:9px 2px 8px;min-height:62px;color:var(--km-muted);font-size:11.5px;font-weight:600;border-right:none!important;letter-spacing:-.3px;line-height:1.2;}
+.bn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+.bn.on{color:var(--br);}
+.bn.on svg{stroke-width:2.2;}
+.bn.on::after{display:none;}
+.bn.home{flex:1;color:var(--km-muted);}
+.tp{padding-bottom:96px;}
+
+/* ---------- 팝업(견적서 미리보기·재고 입출고 등) ---------- */
+.ovl{background:rgba(0,0,0,.45);}
+.modal{background:var(--km-bg);}
+.modal-bar{background:#fff;border-bottom:1px solid var(--km-line);height:56px;}
+.modal-bar h3{color:var(--km-text);font-size:17px;font-weight:700;}
+.cls-btn,.close-btn{background:var(--km-press)!important;color:var(--km-text)!important;border:none!important;border-radius:10px!important;height:36px;padding:0 12px!important;font-size:14px!important;font-weight:600!important;}
+
+/* ---------- 로그인 ---------- */
+.pw-screen{background:#fff;align-items:flex-start;padding-top:max(12vh,48px);}
+.pw-box{background:#fff;border:none;box-shadow:none;width:100%;max-width:400px;padding:0 24px;text-align:left;}
+.pw-logo{margin:0 0 20px;width:56px;height:56px;border-radius:16px;border:none;font-size:18px;}
+.pw-title{font-size:26px;font-weight:800;color:var(--km-text);letter-spacing:-.6px;margin-bottom:6px;}
+.pw-sub{font-size:15px;color:var(--km-sub);margin-bottom:28px;line-height:1.5;}
+.pw-label{font-size:13px;font-weight:600;color:var(--km-sub);margin:14px 0 8px;letter-spacing:0;}
+.pw-field{height:54px;border:1px solid var(--km-line);border-radius:14px;background:var(--km-field);font-size:17px;padding:0 16px;}
+.pw-field:focus{border-color:var(--br);background:#fff;}
+.pw-box .pw-btn{margin-top:24px;height:56px;padding:0;border-radius:14px;background:var(--br);font-size:17px;font-weight:700;}
+.pw-err{font-size:14px;color:#D92D20;text-align:left;margin-top:12px;}
+
+/* ---------- 첫 화면 ---------- */
+#tp-home .th{display:none;}
+.km-hello{padding:28px 4px 18px;}
+.km-hello .hi{font-size:24px;font-weight:800;letter-spacing:-.6px;color:var(--km-text);line-height:1.35;}
+.km-hello .sub{font-size:15px;color:var(--km-sub);margin-top:6px;}
+.km-home-ttl{display:none;}
+.km-home-card{gap:16px;padding:20px;border:none;border-radius:var(--km-r);box-shadow:none;margin-bottom:10px;min-height:96px;}
+.km-home-card:active{transform:scale(.985);background:#fff;}
+.km-home-card .ic{width:52px;height:52px;border-radius:16px;font-size:26px;background:#EAF1F8!important;}
+.km-home-card.c-film .ic{background:#FFF1E6!important;}
+.km-home-card.c-door .ic{background:#EEF0FB!important;}
+.km-home-card .t{font-size:19px;font-weight:700;color:var(--km-text);letter-spacing:-.4px;}
+.km-home-card .d{font-size:14px;color:var(--km-muted);margin-top:4px;}
+.km-home-card .s{font-size:13px;font-weight:600;color:var(--or);margin-top:8px;}
+.km-home-card .ch{font-size:26px;color:#C5CBD3;}
+.km-me{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.km-me .nm{font-size:17px;font-weight:700;color:var(--km-text);}
+.km-me .st{font-size:13px;color:var(--km-muted);margin-top:3px;}
+
+/* ---------- 공사 마진 ---------- */
+.mg-editing{border:none;background:#FFF4EB;border-radius:14px;padding:12px 14px;font-size:14px;}
+.mg-pbhead{font-size:12px;font-weight:600;color:var(--km-muted);letter-spacing:0;margin-bottom:8px;}
+.mg-pb{margin-bottom:8px;gap:8px;}
+.mg-pb .t{font-size:15px;font-weight:700;color:var(--km-text);}
+.mg-pb input{height:48px;padding:0 12px;}
+.mg-pb .s{font-size:14px;font-weight:700;color:var(--km-text);}
+.mg-cost{padding:14px 0;border-top:1px solid var(--km-line);}
+.mg-cost .n{font-size:16px;font-weight:600;color:var(--km-text);}
+.mg-cost .h{font-size:13px;color:var(--km-muted);margin-top:4px;}
+.mg-cost .v{font-size:17px;color:var(--km-text);}
+.mg-cost .mg-in{max-width:170px;}
+.mg-rate input{height:30px;width:52px;border:1px solid var(--km-line);border-radius:8px;background:var(--km-field);font-size:14px;}
+.mg-sum{border:none;border-radius:var(--km-r);padding:22px 22px 20px;box-shadow:none;}
+.mg-sum .r{font-size:15px;padding:4px 0;}
+.mg-big .l{font-size:14px;}
+.mg-big .a{font-size:30px;}
+.mg-big .p{font-size:26px;}
+.mg-legend{font-size:12px;}
+.mg-filters{gap:8px;margin-bottom:12px;}
+.mg-filters select,.mg-filters input{height:46px;border:none;border-radius:12px;background:#fff;font-size:15px;padding:0 14px;}
+.mg-tiles{gap:8px;}
+.mg-tile{border:none;border-radius:16px;padding:14px 16px;}
+.mg-tile .l{font-size:13px;font-weight:600;color:var(--km-muted);}
+.mg-tile .v{font-size:19px;font-weight:800;color:var(--km-text);margin-top:2px;}
+.mg-item{border:none;border-radius:var(--km-r);padding:18px 20px;margin-bottom:10px;}
+.mg-item:active{background:#fff;transform:scale(.99);}
+.mg-item .site{font-size:16px;font-weight:700;color:var(--km-text);}
+.mg-item .sub{font-size:13px;color:var(--km-muted);margin-top:4px;}
+.mg-item .m{font-size:17px;font-weight:800;}
+.mg-item .k{font-size:13px;color:var(--km-muted);margin-top:10px;}
+.mg-item .k b{color:var(--km-sub);font-weight:600;}
+.km-pill{font-size:12px;padding:3px 8px;border-radius:8px;}
+.km-msg{font-size:14px;}
+.km-empty{background:#fff;border-radius:var(--km-r);padding:40px 20px;font-size:14px;}
+.km-hint{font-size:13px;color:var(--km-muted);}
+
+/* ---------- 데이터 ---------- */
+.km-kv>div{background:var(--km-field);border:none;border-radius:12px;padding:12px;}
+.km-kv .l{font-size:12px;font-weight:600;color:var(--km-muted);}
+.km-kv .v{font-size:18px;font-weight:800;color:var(--km-text);margin-top:2px;}
+.km-sales{font-size:14px;}
+.km-sales td{padding:12px 4px;border-top:1px solid var(--km-line);}
+.km-sales small{font-size:12px;color:var(--km-muted);margin-top:2px;}
+.km-sales .amt{color:var(--km-text);font-size:15px;}
+.km-import{padding:14px 0;border-top:1px solid var(--km-line);}
+.km-import .n{font-size:15px;font-weight:600;}
+.km-import .h{font-size:13px;color:var(--km-muted);margin-top:3px;}
+.km-import .km-btn{height:40px;}
+.type-badge{font-size:11px;padding:3px 7px;border-radius:6px;font-weight:700;}
+.stat-card,.sg-card{border-radius:16px!important;border:none!important;box-shadow:none!important;}
+.sg-val{color:var(--km-text);}
+.km-toast{bottom:calc(84px + env(safe-area-inset-bottom,0px));border-radius:14px;font-size:14px;padding:12px 18px;background:#333D4B;}
+.km-btn,.th-btn{white-space:nowrap;flex-shrink:0;}
+.th-btn+.th-btn{margin-left:6px;}
+.mg-filters select,#mg-cyear{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B95A1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:18px;padding-right:38px;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -346,7 +526,7 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
     <div><div class="th-ttl">키친매니저</div><div class="th-sub" id="home-sub">오션메이드 업무 앱</div></div>
   </div></div>
   <div class="container" style="padding-top:18px;padding-bottom:40px;">
-    <div class="km-home-ttl">어떤 업무를 할까요?</div>
+    <div class="km-hello"><div class="hi" id="home-hi">안녕하세요</div><div class="sub">오늘 어떤 업무를 할까요?</div></div>
     <button type="button" class="km-home-card c-mg" onclick="kmGo('margin')">
       <span class="ic">💰</span>
       <span class="tx"><span class="t">공사 마진</span><span class="d">PB 소요량 계산 · 현장 목록 · 업체별 분석</span><span class="s" id="home-s-margin"></span></span>
@@ -363,14 +543,14 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
       <span class="ch">›</span>
     </button>
     <div class="card" style="margin-top:18px">
-      <div class="card-header"><div class="icon">👤</div><h2>내 정보</h2></div>
-      <div class="card-body">
-        <div class="km-row" style="justify-content:space-between;margin-bottom:8px"><span style="font-size:13px;color:var(--g5)">로그인한 이름</span><b id="km-myname" style="font-size:16px;color:var(--br)"></b></div>
-        <div class="km-hint" style="margin-bottom:6px">이름과 비밀번호는 관리자가 구글 시트의 ‘직원’ 시트에서 바꿉니다.</div>
-        <div class="km-hint" id="km-syncinfo"></div>
-        <div class="km-row" style="margin-top:10px">
-          <button type="button" class="km-btn" onclick="kmLoad().then(()=>kmToast('최신 내용을 불러왔습니다.'))">지금 새로고침</button>
-          <button type="button" class="km-btn danger" onclick="kmLogout()">로그아웃</button>
+      <div class="card-body" style="padding:18px 20px">
+        <div class="km-me">
+          <div><div class="nm" id="km-myname"></div><div class="st" id="km-syncinfo"></div></div>
+          <button type="button" class="km-btn" onclick="kmLoad().then(()=>kmToast('최신 내용을 불러왔습니다.'))">새로고침</button>
+        </div>
+        <div class="km-row" style="margin-top:14px;justify-content:space-between">
+          <span class="km-hint">이름과 비밀번호는 관리자가 바꿀 수 있습니다.</span>
+          <button type="button" class="km-btn danger" style="height:36px;padding:0 12px;font-size:14px" onclick="kmLogout()">로그아웃</button>
         </div>
       </div>
     </div>
@@ -470,16 +650,7 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
 <!-- 필름 탭 -->
 <div class="tp" id="tp-film">
 <div id="film-section">
-  <div style="background:var(--om-brown);padding:13px 16px 11px;border-bottom:2px solid var(--om-orange);position:sticky;top:0;z-index:100;">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--om-orange);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🎨</div>
-      <div>
-        <div style="font-size:15px;font-weight:800;color:var(--om-cream);">인테리어 필름 견적</div>
-        <div style="font-size:11px;color:rgba(250,245,238,.65);margin-top:1px;">예림 필름 단가표 기준 · 롤/절단 자동계산</div>
-      </div>
-      <button onclick="openClientMgr()" style="margin-left:auto;background:rgba(250,245,238,.12);border:1.5px solid rgba(250,245,238,.25);color:var(--om-cream);padding:6px 11px;border-radius:8px;font-size:11px;font-family:inherit;cursor:pointer;font-weight:700;">👥 거래처</button>
-    </div>
-  </div>
+  <div class="th"><div class="th-row"><div><div class="th-ttl">인테리어 필름 견적</div><div class="th-sub">예림 필름 단가표 기준 · 롤/절단 자동계산</div></div><button class="th-btn" onclick="openClientMgr()">거래처</button></div></div>
   <div class="container" style="padding-top:14px;">
     <div class="card">
       <div class="card-header"><div class="icon">📋</div><h2>거래처 정보</h2></div>
@@ -531,16 +702,7 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
 <!-- 도어 탭 -->
 <div class="tp" id="tp-door">
 <div id="door-section">
-  <div style="background:var(--om-brown);padding:13px 16px 11px;border-bottom:2px solid var(--om-orange);position:sticky;top:0;z-index:100;">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div style="width:36px;height:36px;border-radius:50%;background:var(--om-orange);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🚪</div>
-      <div>
-        <div style="font-size:15px;font-weight:800;color:var(--om-cream);">비규격 생산도어 발주 견적</div>
-        <div style="font-size:11px;color:rgba(250,245,238,.65);margin-top:1px;">SUPER 레이저도어 · 간편 견적</div>
-      </div>
-      <button onclick="openClientMgr()" style="margin-left:auto;background:rgba(250,245,238,.12);border:1.5px solid rgba(250,245,238,.25);color:var(--om-cream);padding:6px 11px;border-radius:8px;font-size:11px;font-family:inherit;cursor:pointer;font-weight:700;">👥 거래처</button>
-    </div>
-  </div>
+  <div class="th"><div class="th-row"><div><div class="th-ttl">비규격 생산도어 발주 견적</div><div class="th-sub">SUPER 레이저도어 · 간편 견적</div></div><button class="th-btn" onclick="openClientMgr()">거래처</button></div></div>
   <div class="container" style="padding-top:14px;">
     <div class="card">
       <div class="card-header"><div class="icon">📋</div><h2>거래처 정보</h2></div>
@@ -670,7 +832,7 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
     <div class="th-av">📊</div>
     <div><div class="th-ttl">데이터</div><div class="th-sub">견적 기록 · 재고 통계 · 내 정보</div></div>
   </div></div>
-  <div class="container" style="padding-top:14px;padding-bottom:90px;"><div id="data-top"></div><div id="data-inner"></div></div>
+  <div class="container" style="padding-top:14px;padding-bottom:90px;"><div id="data-top"></div><div id="data-inner"></div><div id="data-bottom" style="margin-top:20px"></div></div>
 </div>
 
 <!-- 재고관리 탭 -->
@@ -3068,6 +3230,8 @@ function kmRenderDataTop(){
       '<td class="amt">'+kmWon(s.total)+'</td></tr>').join('')+'</tbody></table>'
     :'<div class="km-hint">필름·도어 견적서에서 “견적서 보기”를 누르면 여기에 모든 직원의 견적이 쌓입니다.</div>')+
   '</div></div>'+
+  '';
+  const bot=document.getElementById('data-bottom');if(bot)bot.innerHTML=
   '<div class="card"><div class="card-header"><div class="icon">📥</div><h2>기존 데이터 가져오기</h2></div><div class="card-body">'+
     '<div class="km-hint" style="margin-bottom:6px">예전 척척박사와 마진계산기에 있던 데이터를 공용 저장소로 옮깁니다. 이미 있는 항목은 건너뛰므로 여러 번 눌러도 중복되지 않습니다.</div>'+
     '<div class="km-import"><div><div class="n">척척박사 재고·재고 이력</div><div class="h">척척박사 서버에 있던 공용 재고 (한 명만 하면 됩니다)</div></div><button class="km-btn" id="km-imp-fb" onclick="kmImportFirebase()">가져오기</button></div>'+
@@ -3077,7 +3241,7 @@ function kmRenderDataTop(){
   '</div></div>';
 }
 function kmSyncText(){
-  return '공용 저장소 연결됨'+(KM.lastSync?' · 마지막으로 불러온 시각 '+kmTime(KM.lastSync):'')+' · 화면은 1분마다 자동으로 새로 불러옵니다.';
+  return KM.lastSync?kmTime(KM.lastSync)+'에 최신 내용을 불러옴 · 1분마다 자동 갱신':'공용 저장소에 연결하는 중…';
 }
 function kmLocalCounts(){
   const a=kmLget('om_cl_film')||[],b=kmLget('om_cl_door')||[],s=kmLget('om_sales')||[],p=kmLget('furn-margin-projects-local')||[];
@@ -3127,10 +3291,20 @@ async function kmImportMargin(){
 const TABS=['home','margin','film','film-price','stock','data','door','price'];
 // 업무별 하단 메뉴
 const KM_GROUPS={
-  margin:[{k:'m-calc',l:'계산'},{k:'m-list',l:'현장<br>목록'},{k:'m-comp',l:'업체별<br>분석'}],
-  film:[{k:'film',l:'필름<br>견적서'},{k:'film-price',l:'필름<br>단가표'},{k:'stock',l:'재고<br>관리'},{k:'data',l:'데이터'}],
-  door:[{k:'door',l:'생산도어<br>견적서'},{k:'price',l:'생산도어<br>단가표'}]
+  margin:[{k:'m-calc',l:'계산',i:'calc'},{k:'m-list',l:'현장 목록',i:'list'},{k:'m-comp',l:'업체별 분석',i:'chart'}],
+  film:[{k:'film',l:'견적서',i:'doc'},{k:'film-price',l:'단가표',i:'table'},{k:'stock',l:'재고',i:'box'},{k:'data',l:'데이터',i:'chart'}],
+  door:[{k:'door',l:'견적서',i:'doc'},{k:'price',l:'단가표',i:'table'}]
 };
+const KM_ICONS={
+  home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h5v-6h4v6h5V9.5"/>',
+  calc:'<rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01"/>',
+  list:'<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>',
+  chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  doc:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+  table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 10v10"/>',
+  box:'<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>'
+};
+function kmIcon(n){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+(KM_ICONS[n]||'')+'</svg>'}
 function kmGroupOf(tab){if(tab==='margin')return'margin';if(['film','film-price','stock','data'].includes(tab))return'film';if(['door','price'].includes(tab))return'door';return'home'}
 let kmNavGroup=null;
 function kmRenderNav(){
@@ -3139,8 +3313,8 @@ function kmRenderNav(){
   nav.hidden=g==='home';
   if(g!==kmNavGroup){
     kmNavGroup=g;
-    nav.innerHTML=g==='home'?'':'<button class="bn home" type="button" onclick="switchTab(\'home\')">홈</button>'+
-      KM_GROUPS[g].map(it=>'<button class="bn" type="button" data-k="'+it.k+'" onclick="kmNavClick(\''+it.k+'\')">'+it.l+'</button>').join('');
+    nav.innerHTML=g==='home'?'':'<button class="bn home" type="button" onclick="switchTab(\'home\')">'+kmIcon('home')+'<span>홈</span></button>'+
+      KM_GROUPS[g].map(it=>'<button class="bn" type="button" data-k="'+it.k+'" onclick="kmNavClick(\''+it.k+'\')">'+kmIcon(it.i)+'<span>'+it.l+'</span></button>').join('');
   }
   const cur=g==='margin'?'m-'+mgCurView:KM.tab;
   nav.querySelectorAll('.bn[data-k]').forEach(b=>b.classList.toggle('on',b.dataset.k===cur));
@@ -3178,7 +3352,7 @@ function kmRenderHome(){
   const low=(KM.state.stock||[]).filter(x=>Number(x.qty)>0&&Number(x.qty)<=Number(x.warn)).length;
   document.getElementById('home-s-film').textContent=[fs?'이번 달 견적 '+fs+'건':'',low?'재고 부족 '+low+'종':''].filter(Boolean).join(' · ');
   document.getElementById('home-s-door').textContent=ds?'이번 달 견적 '+ds+'건':'';
-  document.getElementById('home-sub').textContent='오션메이드 업무 앱'+(KM.cfg?.name?' · '+KM.cfg.name+'님':'');
+  document.getElementById('home-hi').textContent=KM.cfg?.name?KM.cfg.name+'님, 안녕하세요':'안녕하세요';
   document.getElementById('km-myname').textContent=KM.cfg?.name||'';
   document.getElementById('km-syncinfo').textContent=kmSyncText();
 }
