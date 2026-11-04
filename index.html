@@ -498,6 +498,19 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
 .km-btn,.th-btn{white-space:nowrap;flex-shrink:0;}
 .th-btn+.th-btn{margin-left:6px;}
 .mg-filters select,#mg-cyear{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B95A1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:18px;padding-right:38px;}
+
+/* 월별 */
+.mg-chart-ttl{font-size:15px;font-weight:700;color:var(--km-text);margin-bottom:12px;}
+.mg-mchart{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:4px;align-items:end;height:150px;padding-bottom:22px;position:relative;}
+.mg-mchart .col{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0;cursor:pointer;position:relative;}
+.mg-mchart .bar{width:70%;max-width:22px;border-radius:6px 6px 2px 2px;background:#D5DDE6;min-height:2px;}
+.mg-mchart .col.has .bar{background:var(--br);}
+.mg-mchart .col.neg .bar{background:#D92D20;}
+.mg-mchart .col.cur .bar{background:var(--or);}
+.mg-mchart .ml{position:absolute;bottom:-20px;font-size:11px;color:var(--km-muted);font-weight:600;}
+.mg-mchart .col.cur .ml{color:var(--or);}
+.mg-mrow .mon{font-size:18px;font-weight:800;color:var(--km-text);}
+.mg-mrow.empty{opacity:.55;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -632,14 +645,23 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
       <div class="mg-filters">
         <select id="mg-fcompany" aria-label="업체" onchange="mgRenderList()"><option value="">전체 업체</option></select>
         <select id="mg-fyear" aria-label="연도" onchange="mgRenderList()"><option value="">전체 기간</option></select>
+        <select id="mg-fmonth" aria-label="월" onchange="mgRenderList()"></select>
         <input id="mg-fsearch" type="search" placeholder="현장명·업체 검색" oninput="mgRenderList()">
       </div>
       <div class="mg-tiles" id="mg-listsum"></div>
       <div id="mg-list"></div>
     </div>
 
+    <div id="mg-v-month" hidden>
+      <div class="mg-filters"><select id="mg-myear" aria-label="연도" onchange="mgRenderMonth()" style="grid-column:1 / -1"></select></div>
+      <div class="mg-tiles" id="mg-monthtiles"></div>
+      <div class="card" style="padding:18px 20px 8px"><div class="mg-chart-ttl">월별 순마진</div><div class="mg-mchart" id="mg-mchart"></div></div>
+      <div id="mg-month"></div>
+      <p class="km-hint" style="margin-top:4px">달을 누르면 그 달의 현장 목록으로 넘어갑니다.</p>
+    </div>
+
     <div id="mg-v-comp" hidden>
-      <div class="mg-filters"><select id="mg-cyear" aria-label="기간" onchange="mgRenderComp()" style="grid-column:1 / -1"><option value="">전체 기간</option></select></div>
+      <div class="mg-filters"><select id="mg-cyear" aria-label="연도" onchange="mgRenderComp()"><option value="">전체 기간</option></select><select id="mg-cmonth" aria-label="월" onchange="mgRenderComp()"></select></div>
       <div class="mg-tiles" id="mg-comptiles"></div>
       <div id="mg-comp"></div>
       <p class="km-hint" style="margin-top:4px">이익률은 업체의 순마진 합계 ÷ 총공사금액 합계입니다. 업체를 누르면 그 업체의 현장 목록으로 넘어갑니다.</p>
@@ -3111,7 +3133,7 @@ async function mgDelete(){
 }
 function mgView(v){
   mgCurView=v;
-  ['calc','list','comp'].forEach(k=>mg$('v-'+k).hidden=k!==v);
+  ['calc','list','month','comp'].forEach(k=>mg$('v-'+k).hidden=k!==v);
   kmRenderNav();
   if(v!=='calc')mgRender();
 }
@@ -3124,6 +3146,9 @@ function mgRender(){
   fc.value=comps.includes(cv)?cv:'';
   const years=[...new Set(ps.map(p=>String(p.date||'').slice(0,4)).filter(y=>/^\d{4}$/.test(y)))].sort().reverse();
   ['fyear','cyear'].forEach(k=>{const s=mg$(k),v=s.value;s.innerHTML='<option value="">전체 기간</option>'+years.map(y=>'<option value="'+y+'">'+y+'년</option>').join('');s.value=years.includes(v)?v:''});
+  ['fmonth','cmonth'].forEach(k=>{const s=mg$(k);if(!s.options.length)s.innerHTML='<option value="">전체 월</option>'+[...Array(12)].map((_,i)=>'<option value="'+String(i+1).padStart(2,'0')+'">'+(i+1)+'월</option>').join('')});
+  const thisY=mgToday().slice(0,4),ys=years.includes(thisY)?years:[thisY].concat(years);
+  const my=mg$('myear'),mv=my.value;my.innerHTML=ys.map(y=>'<option value="'+y+'">'+y+'년</option>').join('');my.value=ys.includes(mv)?mv:ys[0];
   // 새 현장 화면이면 공용 단가를 기본값으로
   const ae=document.activeElement&&document.activeElement.id;
   if(!mgEditingId&&!MG_PRICE.some(k=>ae==='mg-'+k)){
@@ -3131,11 +3156,12 @@ function mgRender(){
     if(changed)mgCalc();
   }
   if(mgEditingId)mgUpdateEditBar();
-  mgRenderList();mgRenderComp();
+  mgRenderList();mgRenderMonth();mgRenderComp();
 }
+function mgInPeriod(p,y,m){const d=String(p.date||'');return(!y||d.startsWith(y))&&(!m||d.slice(5,7)===m)}
 function mgRenderList(){
-  const fc=mg$('fcompany').value,fy=mg$('fyear').value,q=mg$('fsearch').value.trim().toLowerCase();
-  const rows=KM.state.projects.filter(p=>(!fc||p.company===fc)&&(!fy||String(p.date||'').startsWith(fy))&&(!q||String(p.site||'').toLowerCase().includes(q)||String(p.company||'').toLowerCase().includes(q)))
+  const fc=mg$('fcompany').value,fy=mg$('fyear').value,fm=mg$('fmonth').value,q=mg$('fsearch').value.trim().toLowerCase();
+  const rows=KM.state.projects.filter(p=>(!fc||p.company===fc)&&mgInPeriod(p,fy,fm)&&(!q||String(p.site||'').toLowerCase().includes(q)||String(p.company||'').toLowerCase().includes(q)))
     .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));
   const sc=rows.reduce((a,p)=>a+Number(p.contract||0),0),sm=rows.reduce((a,p)=>a+Number(p.margin||0),0);
   mg$('listsum').innerHTML=
@@ -3157,8 +3183,8 @@ function mgRenderList(){
   }).join('');
 }
 function mgRenderComp(){
-  const fy=mg$('cyear').value;
-  const rows=KM.state.projects.filter(p=>!fy||String(p.date||'').startsWith(fy));
+  const fy=mg$('cyear').value,fm=mg$('cmonth').value;
+  const rows=KM.state.projects.filter(p=>mgInPeriod(p,fy,fm));
   const map=new Map();
   rows.forEach(p=>{const k=p.company||'(업체 없음)';const g=map.get(k)||{name:k,n:0,c:0,o:0,m:0,last:''};
     g.n++;g.c+=Number(p.contract||0);g.o+=Number(p.cost||0);g.m+=Number(p.margin||0);if(String(p.date||'')>g.last)g.last=String(p.date||'');map.set(k,g)});
@@ -3180,7 +3206,36 @@ function mgRenderComp(){
       '<div class="k"><span>공사 <b>'+kmWon(g.c)+'</b></span><span>현장당 마진 <b>'+kmWon(g.m/g.n)+'</b></span></div></button>';
   }).join('');
 }
-function mgGoCompany(name){mg$('fcompany').value=name;mg$('fyear').value=mg$('cyear').value;mg$('fsearch').value='';mgView('list');mgRenderList()}
+function mgRenderMonth(){
+  const y=mg$('myear').value;if(!y)return;
+  const rows=KM.state.projects.filter(p=>String(p.date||'').startsWith(y));
+  const ms=[...Array(12)].map((_,i)=>({m:String(i+1).padStart(2,'0'),n:0,c:0,o:0,mg:0}));
+  rows.forEach(p=>{const i=parseInt(String(p.date).slice(5,7),10)-1;if(i>=0&&i<12){const g=ms[i];g.n++;g.c+=Number(p.contract||0);g.o+=Number(p.cost||0);g.mg+=Number(p.margin||0)}});
+  const tc=ms.reduce((a,g)=>a+g.c,0),tm=ms.reduce((a,g)=>a+g.mg,0),tn=rows.length;
+  const today=mgToday(),curY=today.slice(0,4),curM=today.slice(5,7);
+  const active=ms.filter(g=>g.n),avg=active.length?tm/active.length:0;
+  mg$('monthtiles').innerHTML=
+    '<div class="mg-tile"><div class="l">'+y+'년 현장 수</div><div class="v">'+tn+'건</div></div>'+
+    '<div class="mg-tile"><div class="l">연간 이익률</div><div class="v">'+(tc>0?(tm/tc*100).toFixed(1)+'%':'–')+'</div></div>'+
+    '<div class="mg-tile"><div class="l">연간 순마진</div><div class="v'+(tm<0?' km-neg':'')+'">'+kmWon(tm)+'</div></div>'+
+    '<div class="mg-tile"><div class="l">현장 있는 달 평균 마진</div><div class="v'+(avg<0?' km-neg':'')+'">'+kmWon(avg)+'</div></div>';
+  const max=Math.max(1,...ms.map(g=>Math.abs(g.mg)));
+  mg$('mchart').innerHTML=ms.map((g,i)=>'<div class="col'+(g.n?' has':'')+(g.mg<0?' neg':'')+(y===curY&&g.m===curM?' cur':'')+'" title="'+(i+1)+'월 순마진 '+kmWon(g.mg)+'원" onclick="mgGoMonth(\''+y+'\',\''+g.m+'\')">'+
+    '<div class="bar" style="height:'+(g.n?Math.max(3,Math.abs(g.mg)/max*100):2)+'%"></div><span class="ml">'+(i+1)+'</span></div>').join('');
+  const last=y===curY?parseInt(curM,10):12;
+  const list=ms.slice(0,last).reverse();
+  mg$('month').innerHTML=list.map(g=>{
+    const mm=parseInt(g.m,10);
+    if(!g.n)return '<div class="mg-item mg-mrow empty" style="cursor:default"><div class="top"><div><span class="mon">'+mm+'월</span></div><div class="sub" style="margin:0">현장 없음</div></div></div>';
+    return '<button type="button" class="mg-item mg-mrow" onclick="mgGoMonth(\''+y+'\',\''+g.m+'\')">'+
+      '<div class="top"><div><span class="mon">'+mm+'월</span><div class="sub">현장 '+g.n+'건</div></div>'+
+      '<div><div class="m'+(g.mg<0?' km-neg':'')+'">'+kmWon(g.mg)+'원</div><div style="text-align:right;margin-top:3px">'+mgRatePill(g.mg,g.c)+'</div></div></div>'+
+      '<div class="mg-cbar"><i class="'+(g.mg<0?'neg':'')+'" style="width:'+(Math.abs(g.mg)/max*100).toFixed(1)+'%"></i></div>'+
+      '<div class="k"><span>공사 <b>'+kmWon(g.c)+'</b></span><span>비용 <b>'+kmWon(g.o)+'</b></span></div></button>';
+  }).join('');
+}
+function mgGoMonth(y,m){mg$('fcompany').value='';mg$('fyear').value=y;mg$('fmonth').value=m;mg$('fsearch').value='';mgView('list');mgRenderList();window.scrollTo(0,0)}
+function mgGoCompany(name){mg$('fcompany').value=name;mg$('fyear').value=mg$('cyear').value;mg$('fmonth').value=mg$('cmonth').value;mg$('fsearch').value='';mgView('list');mgRenderList()}
 
 function mgSavePricesSoon(){
   if(mgEditingId)return;
@@ -3291,7 +3346,7 @@ async function kmImportMargin(){
 const TABS=['home','margin','film','film-price','stock','data','door','price'];
 // 업무별 하단 메뉴
 const KM_GROUPS={
-  margin:[{k:'m-calc',l:'계산',i:'calc'},{k:'m-list',l:'현장 목록',i:'list'},{k:'m-comp',l:'업체별 분석',i:'chart'}],
+  margin:[{k:'m-calc',l:'계산',i:'calc'},{k:'m-list',l:'현장 목록',i:'list'},{k:'m-month',l:'월별',i:'cal'},{k:'m-comp',l:'업체별',i:'chart'}],
   film:[{k:'film',l:'견적서',i:'doc'},{k:'film-price',l:'단가표',i:'table'},{k:'stock',l:'재고',i:'box'},{k:'data',l:'데이터',i:'chart'}],
   door:[{k:'door',l:'견적서',i:'doc'},{k:'price',l:'단가표',i:'table'}]
 };
@@ -3302,7 +3357,8 @@ const KM_ICONS={
   chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   doc:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
   table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 10v10"/>',
-  box:'<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>'
+  box:'<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4M7.5 14h.01M12 14h.01M16.5 14h.01M7.5 17.5h.01M12 17.5h.01"/>'
 };
 function kmIcon(n){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+(KM_ICONS[n]||'')+'</svg>'}
 function kmGroupOf(tab){if(tab==='margin')return'margin';if(['film','film-price','stock','data'].includes(tab))return'film';if(['door','price'].includes(tab))return'door';return'home'}
