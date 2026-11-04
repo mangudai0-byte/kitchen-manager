@@ -2991,6 +2991,7 @@ function kmApply(j,fromCache){
 
 function kmRefreshUI(){
   if(!KM.started)return;
+  if(!kmCanFilm()&&['film','door'].includes(kmGroupOf(KM.tab))){switchTab('home');return}
   try{refreshFilmDoorDrops()}catch(e){}
   try{if(document.getElementById('client-ovl')?.classList.contains('show'))refreshClientUI()}catch(e){}
   try{mgRender()}catch(e){console.error(e)}
@@ -3020,6 +3021,7 @@ let kmLastErr=0;
 function kmHandleErr(e,quiet){
   if(e&&e.code==='bad_login'){kmLogout('이름이나 비밀번호가 바뀌었습니다. 다시 로그인해 주세요.');return}
   if(e&&e.code==='bad_code'){kmToast('구글 시트 스크립트가 예전 버전입니다. 관리자가 새 Code.gs를 새 버전으로 배포해야 합니다.',true);return}
+  if(e&&e.code==='forbidden'){kmToast('이 업무는 권한이 없어 저장할 수 없습니다.',true);return}
   if(e&&e.code==='bad_action'){kmToast('구글 시트의 스크립트가 예전 버전이라 저장하지 못했습니다. 관리자가 Apps Script를 새 Code.gs로 바꾸고 새 버전으로 배포해야 합니다.',true);return}
   if(quiet&&Date.now()-kmLastErr<60000)return;
   kmLastErr=Date.now();
@@ -3076,6 +3078,7 @@ const MG_PRICE=['p15','p18','pura','rate'];
 const MG_COLORS=['#E8630A','#F2A65A','#7FA0BE','#B8860B','#9AA7B4','#2F7D4F'];
 let mgEditingId=null,mgPriceTimer=null,mgDelArmed=false,mgCurView='calc';
 const mgIsAdmin=()=>!!(KM.state.me&&KM.state.me.admin);
+const kmCanFilm=()=>!KM.state.me||KM.state.me.film!==false;
 const mgMyOrg=()=>(KM.state.me&&KM.state.me.company)||'';
 // 관리자가 위에서 고른 회사 ('' = 전체)
 function mgOrgSel(){return mgIsAdmin()?(document.getElementById('mg-org')?.value||''):''}
@@ -3437,6 +3440,7 @@ function kmNavClick(k){
   switchTab(k);
 }
 function kmGo(g){
+  if((g==='film'||g==='door')&&!kmCanFilm())return;
   // 공사 마진은 항상 새 현장 입력 화면으로 (쓰다 만 새 현장은 그대로 이어서)
   if(g==='margin'){if(mgEditingId)mgNew();else{switchTab('margin');mgView('calc')}return}
   const last=kmLget('km-last-'+g);
@@ -3444,6 +3448,7 @@ function kmGo(g){
 }
 function switchTab(name){
   if(!TABS.includes(name))name='home';
+  if(!kmCanFilm()&&['film','door'].includes(kmGroupOf(name)))name='home';
   TABS.forEach(t=>{const p=document.getElementById('tp-'+t);if(p)p.style.display=t===name?'block':'none'});
   KM.tab=name;
   const g=kmGroupOf(name);if(g!=='home')kmLset('km-last-'+g,name);
@@ -3457,6 +3462,7 @@ function switchTab(name){
   window.scrollTo(0,0);
 }
 function kmRenderHome(){
+  const cf=kmCanFilm();document.querySelectorAll('.km-home-card.c-film,.km-home-card.c-door').forEach(b=>b.hidden=!cf);
   document.getElementById('home-hi').textContent=KM.cfg?.name?KM.cfg.name+'님, 안녕하세요':'안녕하세요';
   const me=KM.state.me;document.getElementById('km-syncinfo').dataset.org=me?(me.company+(me.admin?' · 관리자':'')):'';
   document.getElementById('km-myname').textContent=KM.cfg?.name||'';

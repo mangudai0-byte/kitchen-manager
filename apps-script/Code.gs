@@ -5,6 +5,7 @@
  * 직원 로그인은 스프레드시트의 '직원' 시트에서 관리합니다.
  *   A열 이름, B열 비밀번호, C열 메모(자유), D열 회사, E열 권한('관리자'면 모든 회사 현장을 봄)
  *   - 공사 마진 현장은 회사별로 나뉩니다. 일반 직원은 자기 회사 현장만 보고 저장합니다.
+ *   - 필름·생산도어(재고, 견적 기록, 거래처)는 FILM_ORG 회사 직원과 관리자만 씁니다.
  *   - 직원 추가: 한 줄 추가
  *   - 퇴사/차단: 그 줄 삭제
  *   - 비밀번호 변경: B열 수정
@@ -38,6 +39,7 @@ const COLLECTIONS = {
 };
 const KV_SHEET = '공유값';
 const STAFF_SHEET = '직원';
+const FILM_ORG = '오션메이드'; // 필름·생산도어 업무를 하는 회사
 const SETTINGS_SHEET = '설정';
 
 /* ---------- 요청 처리 ---------- */
@@ -74,7 +76,8 @@ function checkLogin(name, pw) {
   const staff = readStaff();
   const me = staff.find(s => s.name === name && s.pw === pw);
   if (!me) return null;
-  return { name: me.name, company: me.company || '(회사 미지정)', admin: me.admin, staff: staff };
+  const company = me.company || '(회사 미지정)';
+  return { name: me.name, company: company, admin: me.admin, film: me.admin || company === FILM_ORG, staff: staff };
 }
 
 function doPost(e) {
@@ -102,9 +105,11 @@ function doPost(e) {
         writePrices(body.prices || {}, me);
         break;
       case 'sync': // 재고·재고이력·견적기록: 바뀐 것만 추가/수정/삭제
+        if (!me.film) return out({ ok: false, error: 'forbidden' });
         syncCollection(body.collection, body.upserts || [], body.deletes || [], author, !!body.onlyNew);
         break;
       case 'kv': // 거래처 목록 같은 공유값
+        if (!me.film || String(body.key || '').indexOf('prices:') === 0) return out({ ok: false, error: 'forbidden' });
         writeKV(String(body.key || ''), body.value);
         break;
       default:
@@ -120,13 +125,14 @@ function readAll(me) {
   const all = readProjects(me.staff);
   const projects = me.admin ? all : all.filter(p => p.org === me.company);
   const res = {
-    me: { name: me.name, company: me.company, admin: me.admin },
+    me: { name: me.name, company: me.company, admin: me.admin, film: me.film },
     projects: projects,
     prices: readPrices(me.company),
-    stock: readCollection('stock'),
-    stockLog: readCollection('stockLog'),
-    sales: readCollection('sales'),
-    kv: publicKV()
+    // 필름·생산도어 데이터는 해당 회사 직원과 관리자에게만
+    stock: me.film ? readCollection('stock') : [],
+    stockLog: me.film ? readCollection('stockLog') : [],
+    sales: me.film ? readCollection('sales') : [],
+    kv: me.film ? publicKV() : {}
   };
   if (me.admin) {
     const orgs = {};
