@@ -28,7 +28,7 @@ const PROJECT_COLS = [
   ['pb', 'PB 금액'], ['rate', '기본기물 비율(%)'], ['hw', '기본기물'],
   ['md', 'MD'], ['opt', '선택기물'], ['marble', '대리석'], ['labor', '시공비'],
   ['cost', '비용 총합계'], ['margin', '순마진'], ['marginRate', '이익률(%)'],
-  ['author', '작성자'], ['updatedAt', '저장일시'], ['org', '회사']
+  ['author', '작성자'], ['updatedAt', '저장일시'], ['org', '회사'], ['manager', '담당자']
 ];
 const PROJECT_NUMS = ['contract','q15','q18','qura','p15','p18','pura','pb','rate','hw','md','opt','marble','labor','cost','margin','marginRate'];
 
@@ -126,6 +126,8 @@ function readAll(me) {
   const projects = me.admin ? all : all.filter(p => p.org === me.company);
   const res = {
     me: { name: me.name, company: me.company, admin: me.admin, film: me.film },
+    // 담당자 고를 때 쓰는 같은 회사 직원 이름 (관리자는 아래에서 전체 회사)
+    people: { [me.company]: me.staff.filter(s => (s.company || '(회사 미지정)') === me.company).map(s => s.name) },
     projects: projects,
     prices: readPrices(me.company),
     // 필름·생산도어 데이터는 해당 회사 직원과 관리자에게만
@@ -139,6 +141,8 @@ function readAll(me) {
     me.staff.forEach(s => { if (s.company) orgs[s.company] = 1; });
     all.forEach(p => { if (p.org) orgs[p.org] = 1; });
     res.orgs = Object.keys(orgs).sort();
+    res.people = {};
+    me.staff.forEach(s => { const o = s.company || '(회사 미지정)'; (res.people[o] = res.people[o] || []).push(s.name); });
     res.orgPrices = {};
     res.orgs.forEach(o => res.orgPrices[o] = readPrices(o));
   }
@@ -172,9 +176,11 @@ function projectSheet() { return getSheet(PROJECT_SHEET, PROJECT_COLS.map(c => c
 
 function projectSheetReady() {
   const sh = projectSheet();
-  // 예전 시트에 '회사' 머리글 추가
-  const w = PROJECT_COLS.length;
-  if (String(sh.getRange(1, w).getValue()) !== PROJECT_COLS[w - 1][1]) sh.getRange(1, w).setValue(PROJECT_COLS[w - 1][1]).setFontWeight('bold');
+  // 예전 시트에 새로 생긴 열(회사, 담당자) 머리글 추가
+  const head = sh.getRange(1, 1, 1, PROJECT_COLS.length).getValues()[0];
+  PROJECT_COLS.forEach((c, i) => {
+    if (String(head[i]) !== c[1]) sh.getRange(1, i + 1).setValue(c[1]).setFontWeight('bold');
+  });
   return sh;
 }
 // 회사가 비어 있는 예전 현장은 작성자의 소속 회사로 봄

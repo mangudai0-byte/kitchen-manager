@@ -606,7 +606,11 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
           </div>
           <datalist id="mg-companies"></datalist>
           <div class="field" id="mg-orgfield" hidden><label for="mg-forg">소속 회사 (관리자만 선택)</label><select id="mg-forg" onchange="mgFormOrgChanged()"></select></div>
-          <div class="field"><label for="mg-site">현장명</label><input id="mg-site" type="text" placeholder="현장명을 입력하세요"></div>
+          <div class="row2">
+            <div class="field"><label for="mg-site">현장명</label><input id="mg-site" type="text" placeholder="현장명을 입력하세요"></div>
+            <div class="field"><label for="mg-manager">담당자</label><input id="mg-manager" type="text" list="mg-managers" placeholder="담당자 이름" autocomplete="off"></div>
+          </div>
+          <datalist id="mg-managers"></datalist>
           <div class="field" style="margin-bottom:0"><label for="mg-contract">총공사금액 (원)</label><input id="mg-contract" class="mg-in" inputmode="numeric" placeholder="0" style="font-size:18px;font-weight:800;padding:11px 13px"></div>
         </div>
       </div>
@@ -660,7 +664,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
         <select id="mg-fcompany" aria-label="업체" onchange="mgRenderList()"><option value="">전체 업체</option></select>
         <select id="mg-fyear" aria-label="연도" onchange="mgRenderList()"><option value="">전체 기간</option></select>
         <select id="mg-fmonth" aria-label="월" onchange="mgRenderList()"></select>
-        <input id="mg-fsearch" type="search" placeholder="현장명·업체 검색" oninput="mgRenderList()">
+        <select id="mg-fmanager" aria-label="담당자" onchange="mgRenderList()" style="grid-column:1 / -1"><option value="">전체 담당자</option></select>
+        <input id="mg-fsearch" type="search" placeholder="현장명·업체·담당자 검색" oninput="mgRenderList()">
       </div>
       <div class="mg-tiles" id="mg-listsum"></div>
       <div id="mg-list"></div>
@@ -2938,7 +2943,7 @@ const KM_URL='https://script.google.com/macros/s/AKfycbynWhFBjMFuzSEQ4RI7QYotVGB
 const KM_DEF_PRICES={p15:70000,p18:80000,pura:39000,rate:5};
 const KM={
   cfg:null,                 // {name,pw}
-  state:{projects:[],prices:Object.assign({},KM_DEF_PRICES),stock:[],stockLog:[],sales:[],kv:{},me:null,orgs:[],orgPrices:{}},
+  state:{projects:[],prices:Object.assign({},KM_DEF_PRICES),stock:[],stockLog:[],sales:[],kv:{},me:null,orgs:[],orgPrices:{},people:{}},
   snap:{},                  // 마지막으로 서버와 맞춘 내용 (바뀐 것만 보내기 위해)
   queue:Promise.resolve(),pending:0,lastSync:null,tab:'film',curSale:{},started:false
 };
@@ -2981,11 +2986,12 @@ function kmApply(j,fromCache){
   s.me=j.me&&typeof j.me==='object'?j.me:s.me;
   s.orgs=Array.isArray(j.orgs)?j.orgs:[];
   s.orgPrices=j.orgPrices&&typeof j.orgPrices==='object'?j.orgPrices:{};
+  s.people=j.people&&typeof j.people==='object'?j.people:{};
   if(s.me&&KM.cfg&&s.me.name&&KM.cfg.name!==s.me.name){KM.cfg.name=s.me.name;kmLset('km-auth',KM.cfg)}
   ['stock','stockLog','sales'].forEach(n=>{const m={};s[n].forEach(o=>m[String(o.id)]=JSON.stringify(o));KM.snap[n]=m});
   window._stockCache=s.stock;
   window._stockLogCache=s.stockLog;
-  if(!fromCache){KM.lastSync=new Date();kmLset('km-cache',{projects:s.projects,prices:s.prices,stock:s.stock,stockLog:s.stockLog,sales:s.sales,kv:s.kv,me:s.me,orgs:s.orgs,orgPrices:s.orgPrices});}
+  if(!fromCache){KM.lastSync=new Date();kmLset('km-cache',{projects:s.projects,prices:s.prices,stock:s.stock,stockLog:s.stockLog,sales:s.sales,kv:s.kv,me:s.me,orgs:s.orgs,orgPrices:s.orgPrices,people:s.people});}
   kmRefreshUI();
 }
 
@@ -3071,9 +3077,9 @@ function exportCsv(){
 // =====================================================================
 // ===== 공사 마진 =====
 // =====================================================================
-const MG_FIELDS=['date','company','site','contract','q15','q18','qura','p15','p18','pura','rate','md','opt','marble','labor'];
+const MG_FIELDS=['date','company','site','manager','contract','q15','q18','qura','p15','p18','pura','rate','md','opt','marble','labor'];
 const MG_MONEY=['contract','p15','p18','pura','md','opt','marble','labor'];
-const MG_TEXT=['date','company','site'];
+const MG_TEXT=['date','company','site','manager'];
 const MG_PRICE=['p15','p18','pura','rate'];
 const MG_COLORS=['#E8630A','#F2A65A','#7FA0BE','#B8860B','#9AA7B4','#2F7D4F'];
 let mgEditingId=null,mgPriceTimer=null,mgDelArmed=false,mgCurView='calc';
@@ -3087,7 +3093,8 @@ function mgProjects(){const o=mgOrgSel();return o?KM.state.projects.filter(p=>p.
 function mgFormOrg(){return mgIsAdmin()?(mg$('forg').value||mgMyOrg()):mgMyOrg()}
 function mgPricesFor(org){return Object.assign({},KM_DEF_PRICES,(mgIsAdmin()&&KM.state.orgPrices[org])||KM.state.prices)}
 function mgOrgChanged(){kmLset('km-mg-org',mg$('org').value);if(!mgEditingId&&mg$('org').value){mg$('forg').value=mg$('org').value;mgFormOrgChanged()}mgRender()}
-function mgFormOrgChanged(){if(!mgEditingId){const pr=mgPricesFor(mgFormOrg());MG_PRICE.forEach(k=>mgSet(k,pr[k]));mgCalc()}}
+function mgRenderManagers(){const names=(KM.state.people||{})[mgFormOrg()]||[];mg$('managers').innerHTML=names.map(n=>'<option value="'+kmEsc(n)+'">').join('')}
+function mgFormOrgChanged(){mgRenderManagers();if(!mgEditingId){const pr=mgPricesFor(mgFormOrg());MG_PRICE.forEach(k=>mgSet(k,pr[k]));mgCalc()}}
 const mg$=id=>document.getElementById('mg-'+id);
 const mgParse=v=>{const n=parseFloat(String(v??'').replace(/[^0-9.\-]/g,''));return isNaN(n)?0:n};
 function mgToday(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
@@ -3130,7 +3137,7 @@ function mgUpdateEditBar(){
 function mgNew(){
   mgEditingId=null;
   const fo=mgIsAdmin()?(mgOrgSel()||mgFormOrg()):mgMyOrg();if(mgIsAdmin())mg$('forg').value=fo;
-  mgFill(Object.assign({date:mgToday(),org:fo},mgPricesFor(fo)));
+  mgFill(Object.assign({date:mgToday(),org:fo,manager:KM.cfg?.name||''},mgPricesFor(fo)));
   mgUpdateEditBar();mgMsg('');
   if(KM.tab!=='margin')switchTab('margin');
   mgView('calc');
@@ -3186,6 +3193,7 @@ function mgRenderOrgControls(){
 }
 function mgRender(){
   mgRenderOrgControls();
+  mgRenderManagers();
   const ps=mgProjects();
   const comps=[...new Set(ps.map(p=>p.company).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
   mg$('companies').innerHTML=comps.map(c=>'<option value="'+kmEsc(c)+'">').join('');
@@ -3194,6 +3202,8 @@ function mgRender(){
   fc.value=comps.includes(cv)?cv:'';
   const years=[...new Set(ps.map(p=>String(p.date||'').slice(0,4)).filter(y=>/^\d{4}$/.test(y)))].sort().reverse();
   ['fyear','cyear'].forEach(k=>{const s=mg$(k),v=s.value;s.innerHTML='<option value="">전체 기간</option>'+years.map(y=>'<option value="'+y+'">'+y+'년</option>').join('');s.value=years.includes(v)?v:''});
+  const mgs=[...new Set(ps.map(p=>p.manager).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
+  const fmg=mg$('fmanager'),fmv=fmg.value;fmg.innerHTML='<option value="">전체 담당자</option>'+mgs.map(n=>'<option value="'+kmEsc(n)+'">'+kmEsc(n)+'</option>').join('');fmg.value=mgs.includes(fmv)?fmv:'';
   ['fmonth','cmonth'].forEach(k=>{const s=mg$(k);if(!s.options.length)s.innerHTML='<option value="">전체 월</option>'+[...Array(12)].map((_,i)=>'<option value="'+String(i+1).padStart(2,'0')+'">'+(i+1)+'월</option>').join('')});
   const thisY=mgToday().slice(0,4),ys=years.includes(thisY)?years:[thisY].concat(years);
   const my=mg$('myear'),mv=my.value;my.innerHTML=ys.map(y=>'<option value="'+y+'">'+y+'년</option>').join('');my.value=ys.includes(mv)?mv:ys[0];
@@ -3208,8 +3218,8 @@ function mgRender(){
 }
 function mgInPeriod(p,y,m){const d=String(p.date||'');return(!y||d.startsWith(y))&&(!m||d.slice(5,7)===m)}
 function mgRenderList(){
-  const fc=mg$('fcompany').value,fy=mg$('fyear').value,fm=mg$('fmonth').value,q=mg$('fsearch').value.trim().toLowerCase();
-  const rows=mgProjects().filter(p=>(!fc||p.company===fc)&&mgInPeriod(p,fy,fm)&&(!q||String(p.site||'').toLowerCase().includes(q)||String(p.company||'').toLowerCase().includes(q)))
+  const fc=mg$('fcompany').value,fy=mg$('fyear').value,fm=mg$('fmonth').value,fmg=mg$('fmanager').value,q=mg$('fsearch').value.trim().toLowerCase();
+  const rows=mgProjects().filter(p=>(!fc||p.company===fc)&&(!fmg||p.manager===fmg)&&mgInPeriod(p,fy,fm)&&(!q||String(p.site||'').toLowerCase().includes(q)||String(p.company||'').toLowerCase().includes(q)||String(p.manager||'').toLowerCase().includes(q)))
     .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));
   const sc=rows.reduce((a,p)=>a+Number(p.contract||0),0),sm=rows.reduce((a,p)=>a+Number(p.margin||0),0);
   mg$('listsum').innerHTML=
@@ -3225,7 +3235,7 @@ function mgRenderList(){
     const m=Number(p.margin||0);
     return '<button type="button" class="mg-item" onclick="mgOpen(\''+kmEsc(p.id)+'\')">'+
       '<div class="top"><div style="min-width:0"><div class="site">'+kmEsc(p.site)+'</div>'+
-      '<div class="sub">'+(mgIsAdmin()&&!mgOrgSel()?'<span class="km-org">'+kmEsc(p.org)+'</span>':'')+kmEsc(p.date)+' · '+kmEsc(p.company)+(p.author?' · '+kmEsc(p.author):'')+'</div></div>'+
+      '<div class="sub">'+(mgIsAdmin()&&!mgOrgSel()?'<span class="km-org">'+kmEsc(p.org)+'</span>':'')+kmEsc(p.date)+' · '+kmEsc(p.company)+' · 담당 '+(p.manager?kmEsc(p.manager):'미지정')+'</div></div>'+
       '<div><div class="m'+(m<0?' km-neg':'')+'">'+kmWon(m)+'원</div><div style="text-align:right;margin-top:3px">'+mgRatePill(m,Number(p.contract))+'</div></div></div>'+
       '<div class="k"><span>공사 <b>'+kmWon(p.contract)+'</b></span><span>비용 <b>'+kmWon(p.cost)+'</b></span></div></button>';
   }).join('');
@@ -3293,7 +3303,7 @@ function mgRenderMonth(){
   }).join('');
 }
 function mgPickOrg(o){mg$('org').value=o;mgOrgChanged();window.scrollTo(0,0)}
-function mgGoMonth(y,m){mg$('fcompany').value='';mg$('fyear').value=y;mg$('fmonth').value=m;mg$('fsearch').value='';mgView('list');mgRenderList();window.scrollTo(0,0)}
+function mgGoMonth(y,m){mg$('fcompany').value='';mg$('fyear').value=y;mg$('fmonth').value=m;mg$('fsearch').value='';mg$('fmanager').value='';mgView('list');mgRenderList();window.scrollTo(0,0)}
 function mgGoCompany(name){mg$('fcompany').value=name;mg$('fyear').value=mg$('cyear').value;mg$('fmonth').value=mg$('cmonth').value;mg$('fsearch').value='';mgView('list');mgRenderList()}
 
 function mgSavePricesSoon(){
