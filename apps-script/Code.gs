@@ -223,6 +223,10 @@ function saveProject(p, me) {
   } else {
     p.org = String(p.org || '').trim() || (idx0 > 0 ? rowOrg(sh, idx0, me.staff) : me.company);
   }
+  // 담당자는 그 현장 회사의 직원만
+  const names = me.staff.filter(s => (s.company || '(회사 미지정)') === p.org).map(s => s.name);
+  p.manager = String(p.manager || '').trim();
+  if (p.manager && names.indexOf(p.manager) < 0) p.manager = '';
   p.marginRate = Number(p.contract) > 0 ? Math.round(Number(p.margin) / Number(p.contract) * 1000) / 10 : 0;
   const row = PROJECT_COLS.map(c => PROJECT_NUMS.indexOf(c[0]) >= 0 ? Number(p[c[0]]) || 0 : txt(p[c[0]]));
   const idx = idx0;

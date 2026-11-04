@@ -519,6 +519,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B95A1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:18px;}
 .mg-sec-ttl{font-size:15px;font-weight:700;color:var(--km-text);margin:6px 4px 10px;}
 .km-org{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:#EAF1F8;color:var(--br);margin-right:4px;vertical-align:1px;}
+
+.mg-rank{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:7px;background:#EAF1F8;color:var(--br);font-size:12px;font-weight:800;margin-right:8px;vertical-align:1px;}
+#mg-manager{-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B95A1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:18px;padding-right:38px;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -607,10 +610,9 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
           <datalist id="mg-companies"></datalist>
           <div class="field" id="mg-orgfield" hidden><label for="mg-forg">소속 회사 (관리자만 선택)</label><select id="mg-forg" onchange="mgFormOrgChanged()"></select></div>
           <div class="row2">
-            <div class="field"><label for="mg-site">현장명</label><input id="mg-site" type="text" placeholder="현장명을 입력하세요"></div>
-            <div class="field"><label for="mg-manager">담당자</label><input id="mg-manager" type="text" list="mg-managers" placeholder="담당자 이름" autocomplete="off"></div>
+            <div class="field"><label for="mg-site">현장명</label><input id="mg-site" type="text" placeholder="예: 101동 1203호"></div>
+            <div class="field"><label for="mg-manager">담당자</label><select id="mg-manager"><option value="">담당자 선택</option></select></div>
           </div>
-          <datalist id="mg-managers"></datalist>
           <div class="field" style="margin-bottom:0"><label for="mg-contract">총공사금액 (원)</label><input id="mg-contract" class="mg-in" inputmode="numeric" placeholder="0" style="font-size:18px;font-weight:800;padding:11px 13px"></div>
         </div>
       </div>
@@ -677,6 +679,13 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
       <div class="card" style="padding:18px 20px 8px"><div class="mg-chart-ttl">월별 순마진</div><div class="mg-mchart" id="mg-mchart"></div></div>
       <div id="mg-month"></div>
       <p class="km-hint" style="margin-top:4px">달을 누르면 그 달의 현장 목록으로 넘어갑니다.</p>
+    </div>
+
+    <div id="mg-v-mgr" hidden>
+      <div class="mg-filters"><select id="mg-ryear" aria-label="연도" onchange="mgRenderMgr()"><option value="">전체 기간</option></select><select id="mg-rmonth" aria-label="월" onchange="mgRenderMgr()"></select></div>
+      <div class="mg-tiles" id="mg-rtiles"></div>
+      <div id="mg-rlist"></div>
+      <p class="km-hint" style="margin-top:4px">이익률은 담당자의 순마진 합계 ÷ 총공사금액 합계입니다. 담당자를 누르면 그 담당자의 현장 목록으로 넘어갑니다.</p>
     </div>
 
     <div id="mg-v-comp" hidden>
@@ -3093,13 +3102,19 @@ function mgProjects(){const o=mgOrgSel();return o?KM.state.projects.filter(p=>p.
 function mgFormOrg(){return mgIsAdmin()?(mg$('forg').value||mgMyOrg()):mgMyOrg()}
 function mgPricesFor(org){return Object.assign({},KM_DEF_PRICES,(mgIsAdmin()&&KM.state.orgPrices[org])||KM.state.prices)}
 function mgOrgChanged(){kmLset('km-mg-org',mg$('org').value);if(!mgEditingId&&mg$('org').value){mg$('forg').value=mg$('org').value;mgFormOrgChanged()}mgRender()}
-function mgRenderManagers(){const names=(KM.state.people||{})[mgFormOrg()]||[];mg$('managers').innerHTML=names.map(n=>'<option value="'+kmEsc(n)+'">').join('')}
-function mgFormOrgChanged(){mgRenderManagers();if(!mgEditingId){const pr=mgPricesFor(mgFormOrg());MG_PRICE.forEach(k=>mgSet(k,pr[k]));mgCalc()}}
+function mgStaffOf(org){return ((KM.state.people||{})[org]||[]).slice()}
+function mgRenderManagers(){
+  const sel=mg$('manager'),cur=sel.value||sel.dataset.want||'',names=mgStaffOf(mgFormOrg());
+  let html='<option value="">담당자 선택</option>'+names.map(n=>'<option value="'+kmEsc(n)+'">'+kmEsc(n)+'</option>').join('');
+  if(cur&&!names.includes(cur))html+='<option value="'+kmEsc(cur)+'">'+kmEsc(cur)+' (직원 아님 · 다시 선택)</option>';
+  sel.innerHTML=html;sel.value=cur;delete sel.dataset.want;
+}
+function mgFormOrgChanged(){if(!mgEditingId){const ns=mgStaffOf(mgFormOrg()),me=KM.cfg?.name||'';mg$('manager').dataset.want=ns.includes(mg$('manager').value)?mg$('manager').value:(ns.includes(me)?me:'');mg$('manager').value=''}mgRenderManagers();if(!mgEditingId){const pr=mgPricesFor(mgFormOrg());MG_PRICE.forEach(k=>mgSet(k,pr[k]));mgCalc()}}
 const mg$=id=>document.getElementById('mg-'+id);
 const mgParse=v=>{const n=parseFloat(String(v??'').replace(/[^0-9.\-]/g,''));return isNaN(n)?0:n};
 function mgToday(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
 
-function mgSet(k,v){const el=mg$(k);if(!el)return;if(v==null||v===''){el.value='';return}el.value=MG_MONEY.includes(k)?kmWon(mgParse(v)):v}
+function mgSet(k,v){const el=mg$(k);if(!el)return;if(k==='manager'){el.dataset.want=v||'';mgRenderManagers();return}if(v==null||v===''){el.value='';return}el.value=MG_MONEY.includes(k)?kmWon(mgParse(v)):v}
 function mgData(){const d={};MG_FIELDS.forEach(k=>{const v=mg$(k).value;d[k]=MG_TEXT.includes(k)?v.trim():mgParse(v)});return d}
 function mgCompute(d){
   const s15=d.q15*d.p15,s18=d.q18*d.p18,sura=d.qura*d.pura,pb=s15+s18+sura,hw=pb*d.rate/100;
@@ -3123,7 +3138,7 @@ function mgCalc(){
   mg$('legend').innerHTML=c.items.map(([n,v],i)=>'<span><b style="background:'+MG_COLORS[i]+'"></b>'+n+' '+(c.cost>0?Math.round(v/c.cost*100):0)+'%</span>').join('');
   kmLset('km-mg-draft',Object.assign({editingId:mgEditingId},d));
 }
-function mgFill(d){MG_FIELDS.forEach(k=>mgSet(k,d[k]));if(d.org&&mgIsAdmin())mg$('forg').value=d.org;mgCalc()}
+function mgFill(d){if(d.org&&mgIsAdmin())mg$('forg').value=d.org;MG_FIELDS.forEach(k=>mgSet(k,d[k]));mgCalc()}
 function mgMsg(t,err){const el=mg$('msg');el.textContent=t;el.className='km-msg'+(err?' err':'')}
 function mgUpdateEditBar(){
   const p=KM.state.projects.find(x=>String(x.id)===String(mgEditingId));
@@ -3151,6 +3166,7 @@ async function mgSave(){
   if(mgSaving)return;
   const d=mgData();
   if(!d.company||!d.site){mgMsg('업체와 현장명을 입력해야 저장할 수 있습니다.',true);return}
+  if(!d.manager||!mgStaffOf(mgFormOrg()).includes(d.manager)){mgMsg('담당자를 직원 중에서 선택해 주세요.',true);mg$('manager').focus();return}
   const c=mgCompute(d);
   const id=mgEditingId||('p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
   const rec=Object.assign({},d,{id,org:mgFormOrg(),pb:c.pb,hw:c.hw,cost:c.cost,margin:c.margin,author:KM.cfg?.name||'',updatedAt:new Date().toISOString()});
@@ -3173,7 +3189,7 @@ async function mgDelete(){
 }
 function mgView(v){
   mgCurView=v;
-  ['calc','list','month','comp'].forEach(k=>mg$('v-'+k).hidden=k!==v);
+  ['calc','list','month','comp','mgr'].forEach(k=>mg$('v-'+k).hidden=k!==v);
   kmRenderNav();
   if(v!=='calc')mgRender();
 }
@@ -3201,10 +3217,10 @@ function mgRender(){
   fc.innerHTML='<option value="">전체 업체</option>'+comps.map(c=>'<option value="'+kmEsc(c)+'">'+kmEsc(c)+'</option>').join('');
   fc.value=comps.includes(cv)?cv:'';
   const years=[...new Set(ps.map(p=>String(p.date||'').slice(0,4)).filter(y=>/^\d{4}$/.test(y)))].sort().reverse();
-  ['fyear','cyear'].forEach(k=>{const s=mg$(k),v=s.value;s.innerHTML='<option value="">전체 기간</option>'+years.map(y=>'<option value="'+y+'">'+y+'년</option>').join('');s.value=years.includes(v)?v:''});
+  ['fyear','cyear','ryear'].forEach(k=>{const s=mg$(k),v=s.value;s.innerHTML='<option value="">전체 기간</option>'+years.map(y=>'<option value="'+y+'">'+y+'년</option>').join('');s.value=years.includes(v)?v:''});
   const mgs=[...new Set(ps.map(p=>p.manager).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
   const fmg=mg$('fmanager'),fmv=fmg.value;fmg.innerHTML='<option value="">전체 담당자</option>'+mgs.map(n=>'<option value="'+kmEsc(n)+'">'+kmEsc(n)+'</option>').join('');fmg.value=mgs.includes(fmv)?fmv:'';
-  ['fmonth','cmonth'].forEach(k=>{const s=mg$(k);if(!s.options.length)s.innerHTML='<option value="">전체 월</option>'+[...Array(12)].map((_,i)=>'<option value="'+String(i+1).padStart(2,'0')+'">'+(i+1)+'월</option>').join('')});
+  ['fmonth','cmonth','rmonth'].forEach(k=>{const s=mg$(k);if(!s.options.length)s.innerHTML='<option value="">전체 월</option>'+[...Array(12)].map((_,i)=>'<option value="'+String(i+1).padStart(2,'0')+'">'+(i+1)+'월</option>').join('')});
   const thisY=mgToday().slice(0,4),ys=years.includes(thisY)?years:[thisY].concat(years);
   const my=mg$('myear'),mv=my.value;my.innerHTML=ys.map(y=>'<option value="'+y+'">'+y+'년</option>').join('');my.value=ys.includes(mv)?mv:ys[0];
   // 새 현장 화면이면 공용 단가를 기본값으로
@@ -3214,7 +3230,7 @@ function mgRender(){
     if(changed)mgCalc();
   }
   if(mgEditingId)mgUpdateEditBar();
-  mgRenderList();mgRenderMonth();mgRenderComp();
+  mgRenderList();mgRenderMonth();mgRenderComp();mgRenderMgr();
 }
 function mgInPeriod(p,y,m){const d=String(p.date||'');return(!y||d.startsWith(y))&&(!m||d.slice(5,7)===m)}
 function mgRenderList(){
@@ -3302,6 +3318,37 @@ function mgRenderMonth(){
       '<div class="k"><span>공사 <b>'+kmWon(g.c)+'</b></span><span>비용 <b>'+kmWon(g.o)+'</b></span></div></button>';
   }).join('');
 }
+function mgRenderMgr(){
+  const fy=mg$('ryear').value,fm=mg$('rmonth').value,allOrg=mgIsAdmin()&&!mgOrgSel();
+  const rows=mgProjects().filter(p=>mgInPeriod(p,fy,fm));
+  const map=new Map();
+  rows.forEach(p=>{const nm=p.manager||'(미지정)',k=(allOrg?p.org+'|':'')+nm;const g=map.get(k)||{name:nm,org:p.org,n:0,c:0,o:0,m:0,last:''};
+    g.n++;g.c+=Number(p.contract||0);g.o+=Number(p.cost||0);g.m+=Number(p.margin||0);if(String(p.date||'')>g.last)g.last=String(p.date||'');map.set(k,g)});
+  const gs=[...map.values()].sort((a,b)=>b.m-a.m);
+  const tc=rows.reduce((a,p)=>a+Number(p.contract||0),0),tm=rows.reduce((a,p)=>a+Number(p.margin||0),0);
+  const real=gs.filter(g=>g.name!=='(미지정)');
+  mg$('rtiles').innerHTML=
+    '<div class="mg-tile"><div class="l">담당자 수</div><div class="v">'+real.length+'명</div></div>'+
+    '<div class="mg-tile"><div class="l">전체 이익률</div><div class="v">'+(tc>0?(tm/tc*100).toFixed(1)+'%':'–')+'</div></div>'+
+    '<div class="mg-tile"><div class="l">현장 수</div><div class="v">'+rows.length+'건</div></div>'+
+    '<div class="mg-tile"><div class="l">순마진 합계</div><div class="v'+(tm<0?' km-neg':'')+'">'+kmWon(tm)+'</div></div>';
+  if(!gs.length){mg$('rlist').innerHTML='<div class="km-empty"><b>비교할 현장이 없습니다</b>기간을 바꾸거나 현장을 저장하면 담당자별 실적이 나옵니다.</div>';return}
+  const max=Math.max(1,...gs.map(g=>Math.abs(g.m)));
+  mg$('rlist').innerHTML=gs.map((g,i)=>{
+    const r=g.c>0?g.m/g.c*100:0,rank=g.name==='(미지정)'?'':'<span class="mg-rank">'+(i+1)+'</span>';
+    return '<button type="button" class="mg-item" onclick="mgGoManager(\''+kmEsc(g.name==='(미지정)'?'':g.name)+'\',\''+kmEsc(allOrg?g.org:'')+'\')">'+
+      '<div class="top"><div style="min-width:0">'+rank+'<span class="site">'+kmEsc(g.name)+'</span>'+(allOrg?' <span class="km-org">'+kmEsc(g.org)+'</span>':'')+
+      '<div class="sub">현장 '+g.n+'건 · 최근 '+kmEsc(g.last||'–')+'</div></div>'+
+      '<div><div class="m'+(g.m<0?' km-neg':'')+'">'+kmWon(g.m)+'원</div><div style="text-align:right;margin-top:3px">'+mgRatePill(g.m,g.c)+'</div></div></div>'+
+      '<div class="mg-cbar"><i class="'+(g.m<0?'neg':'')+'" style="width:'+(Math.abs(g.m)/max*100).toFixed(1)+'%"></i></div>'+
+      '<div class="k"><span>공사 <b>'+kmWon(g.c)+'</b></span><span>현장당 마진 <b>'+kmWon(g.m/g.n)+'</b></span></div></button>';
+  }).join('');
+}
+function mgGoManager(name,org){
+  if(org&&mgIsAdmin()){mg$('org').value=org;kmLset('km-mg-org',org)}
+  mg$('fcompany').value='';mg$('fyear').value=mg$('ryear').value;mg$('fmonth').value=mg$('rmonth').value;mg$('fsearch').value='';
+  mgRender();mg$('fmanager').value=name;mgView('list');mgRenderList();window.scrollTo(0,0);
+}
 function mgPickOrg(o){mg$('org').value=o;mgOrgChanged();window.scrollTo(0,0)}
 function mgGoMonth(y,m){mg$('fcompany').value='';mg$('fyear').value=y;mg$('fmonth').value=m;mg$('fsearch').value='';mg$('fmanager').value='';mgView('list');mgRenderList();window.scrollTo(0,0)}
 function mgGoCompany(name){mg$('fcompany').value=name;mg$('fyear').value=mg$('cyear').value;mg$('fmonth').value=mg$('cmonth').value;mg$('fsearch').value='';mgView('list');mgRenderList()}
@@ -3325,10 +3372,11 @@ function mgInit(){
       if(MG_PRICE.includes(k))mgSavePricesSoon();
       mgCalc();
     });
+    if(el.tagName==='SELECT')el.addEventListener('change',()=>mgCalc());
     if(!MG_TEXT.includes(k))el.addEventListener('focus',()=>{try{el.select()}catch(e){}});
   });
   const dr=kmLget('km-mg-draft');
-  if(dr&&!dr.editingId){mgEditingId=null;mgFill(dr)}else mgFill(Object.assign({date:mgToday()},KM.state.prices));
+  if(dr&&!dr.editingId){mgEditingId=null;mgFill(Object.assign({manager:KM.cfg?.name||''},dr,dr.manager?{}:{manager:KM.cfg?.name||''}))}else mgFill(Object.assign({date:mgToday(),manager:KM.cfg?.name||''},KM.state.prices));
   mgUpdateEditBar();mgRender();
 }
 
@@ -3416,7 +3464,7 @@ async function kmImportMargin(){
 const TABS=['home','margin','film','film-price','stock','data','door','price'];
 // 업무별 하단 메뉴
 const KM_GROUPS={
-  margin:[{k:'m-calc',l:'계산',i:'calc'},{k:'m-list',l:'현장 목록',i:'list'},{k:'m-month',l:'월별',i:'cal'},{k:'m-comp',l:'업체별',i:'chart'}],
+  margin:[{k:'m-calc',l:'계산',i:'calc'},{k:'m-list',l:'목록',i:'list'},{k:'m-month',l:'월별',i:'cal'},{k:'m-comp',l:'업체별',i:'chart'},{k:'m-mgr',l:'담당자',i:'person'}],
   film:[{k:'film',l:'견적서',i:'doc'},{k:'film-price',l:'단가표',i:'table'},{k:'stock',l:'재고',i:'box'},{k:'data',l:'데이터',i:'chart'}],
   door:[{k:'door',l:'견적서',i:'doc'},{k:'price',l:'단가표',i:'table'}]
 };
@@ -3428,6 +3476,7 @@ const KM_ICONS={
   doc:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
   table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M9 10v10"/>',
   box:'<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+  person:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>',
   cal:'<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4M7.5 14h.01M12 14h.01M16.5 14h.01M7.5 17.5h.01M12 17.5h.01"/>'
 };
 function kmIcon(n){return '<svg viewBox="0 0 24 24" aria-hidden="true">'+(KM_ICONS[n]||'')+'</svg>'}
