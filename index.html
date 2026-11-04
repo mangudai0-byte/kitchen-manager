@@ -3258,7 +3258,7 @@ function mgInit(){
     if(!MG_TEXT.includes(k))el.addEventListener('focus',()=>{try{el.select()}catch(e){}});
   });
   const dr=kmLget('km-mg-draft');
-  if(dr){mgEditingId=dr.editingId||null;mgFill(dr)}else mgFill(Object.assign({date:mgToday()},KM.state.prices));
+  if(dr&&!dr.editingId){mgEditingId=null;mgFill(dr)}else mgFill(Object.assign({date:mgToday()},KM.state.prices));
   mgUpdateEditBar();mgRender();
 }
 
@@ -3380,7 +3380,8 @@ function kmNavClick(k){
   switchTab(k);
 }
 function kmGo(g){
-  if(g==='margin'){switchTab('margin');return}
+  // 공사 마진은 항상 새 현장 입력 화면으로 (쓰다 만 새 현장은 그대로 이어서)
+  if(g==='margin'){if(mgEditingId)mgNew();else{switchTab('margin');mgView('calc')}return}
   const last=kmLget('km-last-'+g);
   switchTab(last&&kmGroupOf(last)===g?last:KM_GROUPS[g][0].k);
 }
