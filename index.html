@@ -511,6 +511,14 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
 .mg-mchart .col.cur .ml{color:var(--or);}
 .mg-mrow .mon{font-size:18px;font-weight:800;color:var(--km-text);}
 .mg-mrow.empty{opacity:.55;}
+
+/* 회사 선택 (관리자) */
+.mg-orgbar{display:flex;align-items:center;gap:10px;background:#fff;border-radius:16px;padding:10px 12px 10px 16px;margin-bottom:12px;}
+.mg-orgbar .l{font-size:13px;font-weight:600;color:var(--km-muted);white-space:nowrap;}
+.mg-orgbar select{flex:1;min-width:0;height:42px;border:none;border-radius:10px;background:var(--km-field);font-size:16px;font-weight:700;color:var(--br);padding:0 36px 0 12px;-webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B95A1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:18px;}
+.mg-sec-ttl{font-size:15px;font-weight:700;color:var(--km-text);margin:6px 4px 10px;}
+.km-org{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:#EAF1F8;color:var(--br);margin-right:4px;vertical-align:1px;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
@@ -579,6 +587,11 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
   </div></div>
   <div class="container" style="padding-top:14px;padding-bottom:90px;">
 
+    <div class="mg-orgbar" id="mg-orgbar" hidden>
+      <span class="l">보는 회사</span>
+      <select id="mg-org" aria-label="보는 회사" onchange="mgOrgChanged()"></select>
+    </div>
+
     <div id="mg-v-calc">
       <div class="mg-editing" id="mg-editbar" hidden>
         <span>저장된 현장 수정 중 · <b id="mg-editname"></b></span>
@@ -592,6 +605,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
             <div class="field"><label for="mg-company">업체</label><input id="mg-company" type="text" list="mg-companies" placeholder="업체명" autocomplete="off"></div>
           </div>
           <datalist id="mg-companies"></datalist>
+          <div class="field" id="mg-orgfield" hidden><label for="mg-forg">소속 회사 (관리자만 선택)</label><select id="mg-forg" onchange="mgFormOrgChanged()"></select></div>
           <div class="field"><label for="mg-site">현장명</label><input id="mg-site" type="text" placeholder="현장명을 입력하세요"></div>
           <div class="field" style="margin-bottom:0"><label for="mg-contract">총공사금액 (원)</label><input id="mg-contract" class="mg-in" inputmode="numeric" placeholder="0" style="font-size:18px;font-weight:800;padding:11px 13px"></div>
         </div>
@@ -663,6 +677,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
     <div id="mg-v-comp" hidden>
       <div class="mg-filters"><select id="mg-cyear" aria-label="연도" onchange="mgRenderComp()"><option value="">전체 기간</option></select><select id="mg-cmonth" aria-label="월" onchange="mgRenderComp()"></select></div>
       <div class="mg-tiles" id="mg-comptiles"></div>
+      <div id="mg-orgcomp"></div>
       <div id="mg-comp"></div>
       <p class="km-hint" style="margin-top:4px">이익률은 업체의 순마진 합계 ÷ 총공사금액 합계입니다. 업체를 누르면 그 업체의 현장 목록으로 넘어갑니다.</p>
     </div>
@@ -2923,7 +2938,7 @@ const KM_URL='https://script.google.com/macros/s/AKfycbynWhFBjMFuzSEQ4RI7QYotVGB
 const KM_DEF_PRICES={p15:70000,p18:80000,pura:39000,rate:5};
 const KM={
   cfg:null,                 // {name,pw}
-  state:{projects:[],prices:Object.assign({},KM_DEF_PRICES),stock:[],stockLog:[],sales:[],kv:{}},
+  state:{projects:[],prices:Object.assign({},KM_DEF_PRICES),stock:[],stockLog:[],sales:[],kv:{},me:null,orgs:[],orgPrices:{}},
   snap:{},                  // 마지막으로 서버와 맞춘 내용 (바뀐 것만 보내기 위해)
   queue:Promise.resolve(),pending:0,lastSync:null,tab:'film',curSale:{},started:false
 };
@@ -2963,10 +2978,14 @@ function kmApply(j,fromCache){
   s.stockLog=(Array.isArray(j.stockLog)?j.stockLog:[]).sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0));
   s.sales=(Array.isArray(j.sales)?j.sales:[]).sort((a,b)=>(Number(b.id)||0)-(Number(a.id)||0));
   s.kv=j.kv&&typeof j.kv==='object'?j.kv:{};
+  s.me=j.me&&typeof j.me==='object'?j.me:s.me;
+  s.orgs=Array.isArray(j.orgs)?j.orgs:[];
+  s.orgPrices=j.orgPrices&&typeof j.orgPrices==='object'?j.orgPrices:{};
+  if(s.me&&KM.cfg&&s.me.name&&KM.cfg.name!==s.me.name){KM.cfg.name=s.me.name;kmLset('km-auth',KM.cfg)}
   ['stock','stockLog','sales'].forEach(n=>{const m={};s[n].forEach(o=>m[String(o.id)]=JSON.stringify(o));KM.snap[n]=m});
   window._stockCache=s.stock;
   window._stockLogCache=s.stockLog;
-  if(!fromCache){KM.lastSync=new Date();kmLset('km-cache',{projects:s.projects,prices:s.prices,stock:s.stock,stockLog:s.stockLog,sales:s.sales,kv:s.kv});}
+  if(!fromCache){KM.lastSync=new Date();kmLset('km-cache',{projects:s.projects,prices:s.prices,stock:s.stock,stockLog:s.stockLog,sales:s.sales,kv:s.kv,me:s.me,orgs:s.orgs,orgPrices:s.orgPrices});}
   kmRefreshUI();
 }
 
@@ -3056,6 +3075,16 @@ const MG_TEXT=['date','company','site'];
 const MG_PRICE=['p15','p18','pura','rate'];
 const MG_COLORS=['#E8630A','#F2A65A','#7FA0BE','#B8860B','#9AA7B4','#2F7D4F'];
 let mgEditingId=null,mgPriceTimer=null,mgDelArmed=false,mgCurView='calc';
+const mgIsAdmin=()=>!!(KM.state.me&&KM.state.me.admin);
+const mgMyOrg=()=>(KM.state.me&&KM.state.me.company)||'';
+// 관리자가 위에서 고른 회사 ('' = 전체)
+function mgOrgSel(){return mgIsAdmin()?(document.getElementById('mg-org')?.value||''):''}
+function mgProjects(){const o=mgOrgSel();return o?KM.state.projects.filter(p=>p.org===o):KM.state.projects}
+// 입력 화면의 소속 회사
+function mgFormOrg(){return mgIsAdmin()?(mg$('forg').value||mgMyOrg()):mgMyOrg()}
+function mgPricesFor(org){return Object.assign({},KM_DEF_PRICES,(mgIsAdmin()&&KM.state.orgPrices[org])||KM.state.prices)}
+function mgOrgChanged(){kmLset('km-mg-org',mg$('org').value);if(!mgEditingId&&mg$('org').value){mg$('forg').value=mg$('org').value;mgFormOrgChanged()}mgRender()}
+function mgFormOrgChanged(){if(!mgEditingId){const pr=mgPricesFor(mgFormOrg());MG_PRICE.forEach(k=>mgSet(k,pr[k]));mgCalc()}}
 const mg$=id=>document.getElementById('mg-'+id);
 const mgParse=v=>{const n=parseFloat(String(v??'').replace(/[^0-9.\-]/g,''));return isNaN(n)?0:n};
 function mgToday(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
@@ -3084,7 +3113,7 @@ function mgCalc(){
   mg$('legend').innerHTML=c.items.map(([n,v],i)=>'<span><b style="background:'+MG_COLORS[i]+'"></b>'+n+' '+(c.cost>0?Math.round(v/c.cost*100):0)+'%</span>').join('');
   kmLset('km-mg-draft',Object.assign({editingId:mgEditingId},d));
 }
-function mgFill(d){MG_FIELDS.forEach(k=>mgSet(k,d[k]));mgCalc()}
+function mgFill(d){MG_FIELDS.forEach(k=>mgSet(k,d[k]));if(d.org&&mgIsAdmin())mg$('forg').value=d.org;mgCalc()}
 function mgMsg(t,err){const el=mg$('msg');el.textContent=t;el.className='km-msg'+(err?' err':'')}
 function mgUpdateEditBar(){
   const p=KM.state.projects.find(x=>String(x.id)===String(mgEditingId));
@@ -3092,12 +3121,13 @@ function mgUpdateEditBar(){
   mg$('editbar').hidden=!mgEditingId;
   mg$('editname').textContent=p?((p.company||'업체 없음')+' · '+(p.site||'현장명 없음')):'';
   mg$('save').textContent=mgEditingId?'변경 저장':'현장 저장';
-  mg$('pricehint').textContent=mgEditingId?'이 현장의 단가는 이 현장에만 적용됩니다.':'단가를 고치면 모든 직원의 새 현장 기본 단가로 저장됩니다.';
+  mg$('pricehint').textContent=mgEditingId?'이 현장의 단가는 이 현장에만 적용됩니다.':'단가를 고치면 '+(mgFormOrg()||'우리 회사')+' 직원들의 새 현장 기본 단가로 저장됩니다.';
   mgDelArmed=false;mg$('del').textContent='삭제';
 }
 function mgNew(){
   mgEditingId=null;
-  mgFill(Object.assign({date:mgToday()},KM.state.prices));
+  const fo=mgIsAdmin()?(mgOrgSel()||mgFormOrg()):mgMyOrg();if(mgIsAdmin())mg$('forg').value=fo;
+  mgFill(Object.assign({date:mgToday(),org:fo},mgPricesFor(fo)));
   mgUpdateEditBar();mgMsg('');
   if(KM.tab!=='margin')switchTab('margin');
   mgView('calc');
@@ -3113,7 +3143,7 @@ async function mgSave(){
   if(!d.company||!d.site){mgMsg('업체와 현장명을 입력해야 저장할 수 있습니다.',true);return}
   const c=mgCompute(d);
   const id=mgEditingId||('p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
-  const rec=Object.assign({},d,{id,pb:c.pb,hw:c.hw,cost:c.cost,margin:c.margin,author:KM.cfg?.name||'',updatedAt:new Date().toISOString()});
+  const rec=Object.assign({},d,{id,org:mgFormOrg(),pb:c.pb,hw:c.hw,cost:c.cost,margin:c.margin,author:KM.cfg?.name||'',updatedAt:new Date().toISOString()});
   // 화면에 먼저 반영
   const list=KM.state.projects.filter(x=>String(x.id)!==String(id));list.unshift(rec);KM.state.projects=list;
   mgEditingId=id;mgUpdateEditBar();mgRender();
@@ -3137,8 +3167,23 @@ function mgView(v){
   kmRenderNav();
   if(v!=='calc')mgRender();
 }
+function mgRenderOrgControls(){
+  const admin=mgIsAdmin();
+  mg$('orgbar').hidden=!admin;mg$('orgfield').hidden=!admin;
+  const sub=document.querySelector('#tp-margin .th-sub');
+  if(sub)sub.textContent=admin?'관리자 · 모든 회사 현장':(mgMyOrg()?mgMyOrg()+' 현장':'PB 소요량 자동계산 · 현장별 순마진');
+  if(!admin)return;
+  const orgs=KM.state.orgs.length?KM.state.orgs:[...new Set(KM.state.projects.map(p=>p.org).filter(Boolean))];
+  const sel=mg$('org'),cur=sel.value||kmLget('km-mg-org')||'';
+  sel.innerHTML='<option value="">전체 회사</option>'+orgs.map(o=>'<option value="'+kmEsc(o)+'">'+kmEsc(o)+'</option>').join('');
+  sel.value=orgs.includes(cur)?cur:'';
+  const f=mg$('forg'),fv=f.value;
+  f.innerHTML=orgs.map(o=>'<option value="'+kmEsc(o)+'">'+kmEsc(o)+'</option>').join('');
+  f.value=orgs.includes(fv)?fv:(orgs.includes(mgMyOrg())?mgMyOrg():orgs[0]||'');
+}
 function mgRender(){
-  const ps=KM.state.projects;
+  mgRenderOrgControls();
+  const ps=mgProjects();
   const comps=[...new Set(ps.map(p=>p.company).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ko'));
   mg$('companies').innerHTML=comps.map(c=>'<option value="'+kmEsc(c)+'">').join('');
   const fc=mg$('fcompany'),cv=fc.value;
@@ -3152,7 +3197,7 @@ function mgRender(){
   // 새 현장 화면이면 공용 단가를 기본값으로
   const ae=document.activeElement&&document.activeElement.id;
   if(!mgEditingId&&!MG_PRICE.some(k=>ae==='mg-'+k)){
-    let changed=false;MG_PRICE.forEach(k=>{if(mgParse(mg$(k).value)!==Number(KM.state.prices[k])){mgSet(k,KM.state.prices[k]);changed=true}});
+    const pr=mgPricesFor(mgFormOrg());let changed=false;MG_PRICE.forEach(k=>{if(mgParse(mg$(k).value)!==Number(pr[k])){mgSet(k,pr[k]);changed=true}});
     if(changed)mgCalc();
   }
   if(mgEditingId)mgUpdateEditBar();
@@ -3161,7 +3206,7 @@ function mgRender(){
 function mgInPeriod(p,y,m){const d=String(p.date||'');return(!y||d.startsWith(y))&&(!m||d.slice(5,7)===m)}
 function mgRenderList(){
   const fc=mg$('fcompany').value,fy=mg$('fyear').value,fm=mg$('fmonth').value,q=mg$('fsearch').value.trim().toLowerCase();
-  const rows=KM.state.projects.filter(p=>(!fc||p.company===fc)&&mgInPeriod(p,fy,fm)&&(!q||String(p.site||'').toLowerCase().includes(q)||String(p.company||'').toLowerCase().includes(q)))
+  const rows=mgProjects().filter(p=>(!fc||p.company===fc)&&mgInPeriod(p,fy,fm)&&(!q||String(p.site||'').toLowerCase().includes(q)||String(p.company||'').toLowerCase().includes(q)))
     .sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));
   const sc=rows.reduce((a,p)=>a+Number(p.contract||0),0),sm=rows.reduce((a,p)=>a+Number(p.margin||0),0);
   mg$('listsum').innerHTML=
@@ -3170,21 +3215,21 @@ function mgRenderList(){
     '<div class="mg-tile"><div class="l">총공사금액 합계</div><div class="v">'+kmWon(sc)+'</div></div>'+
     '<div class="mg-tile"><div class="l">순마진 합계</div><div class="v'+(sm<0?' km-neg':'')+'">'+kmWon(sm)+'</div></div>';
   if(!rows.length){
-    mg$('list').innerHTML='<div class="km-empty">'+(KM.state.projects.length?'<b>조건에 맞는 현장이 없습니다</b>업체·기간·검색어를 바꿔 보세요.':'<b>아직 저장된 현장이 없습니다</b>계산 화면에서 입력한 뒤 “현장 저장”을 누르면 모든 직원이 함께 볼 수 있게 쌓입니다.')+'</div>';
+    mg$('list').innerHTML='<div class="km-empty">'+(mgProjects().length?'<b>조건에 맞는 현장이 없습니다</b>업체·기간·검색어를 바꿔 보세요.':'<b>아직 저장된 현장이 없습니다</b>계산 화면에서 입력한 뒤 “현장 저장”을 누르면 모든 직원이 함께 볼 수 있게 쌓입니다.')+'</div>';
     return;
   }
   mg$('list').innerHTML=rows.map(p=>{
     const m=Number(p.margin||0);
     return '<button type="button" class="mg-item" onclick="mgOpen(\''+kmEsc(p.id)+'\')">'+
       '<div class="top"><div style="min-width:0"><div class="site">'+kmEsc(p.site)+'</div>'+
-      '<div class="sub">'+kmEsc(p.date)+' · '+kmEsc(p.company)+(p.author?' · '+kmEsc(p.author):'')+'</div></div>'+
+      '<div class="sub">'+(mgIsAdmin()&&!mgOrgSel()?'<span class="km-org">'+kmEsc(p.org)+'</span>':'')+kmEsc(p.date)+' · '+kmEsc(p.company)+(p.author?' · '+kmEsc(p.author):'')+'</div></div>'+
       '<div><div class="m'+(m<0?' km-neg':'')+'">'+kmWon(m)+'원</div><div style="text-align:right;margin-top:3px">'+mgRatePill(m,Number(p.contract))+'</div></div></div>'+
       '<div class="k"><span>공사 <b>'+kmWon(p.contract)+'</b></span><span>비용 <b>'+kmWon(p.cost)+'</b></span></div></button>';
   }).join('');
 }
 function mgRenderComp(){
   const fy=mg$('cyear').value,fm=mg$('cmonth').value;
-  const rows=KM.state.projects.filter(p=>mgInPeriod(p,fy,fm));
+  const rows=mgProjects().filter(p=>mgInPeriod(p,fy,fm));
   const map=new Map();
   rows.forEach(p=>{const k=p.company||'(업체 없음)';const g=map.get(k)||{name:k,n:0,c:0,o:0,m:0,last:''};
     g.n++;g.c+=Number(p.contract||0);g.o+=Number(p.cost||0);g.m+=Number(p.margin||0);if(String(p.date||'')>g.last)g.last=String(p.date||'');map.set(k,g)});
@@ -3195,6 +3240,16 @@ function mgRenderComp(){
     '<div class="mg-tile"><div class="l">전체 이익률</div><div class="v">'+(tc>0?(tm/tc*100).toFixed(1)+'%':'–')+'</div></div>'+
     '<div class="mg-tile"><div class="l">총공사금액 합계</div><div class="v">'+kmWon(tc)+'</div></div>'+
     '<div class="mg-tile"><div class="l">순마진 합계</div><div class="v'+(tm<0?' km-neg':'')+'">'+kmWon(tm)+'</div></div>';
+  const oc=mg$('orgcomp');
+  if(mgIsAdmin()&&!mgOrgSel()&&rows.length){
+    const om=new Map();rows.forEach(p=>{const k=p.org||'(회사 미지정)';const g=om.get(k)||{name:k,n:0,c:0,m:0};g.n++;g.c+=Number(p.contract||0);g.m+=Number(p.margin||0);om.set(k,g)});
+    const og=[...om.values()].sort((a,b)=>b.m-a.m),omax=Math.max(1,...og.map(g=>Math.abs(g.m)));
+    oc.innerHTML='<div class="mg-sec-ttl">회사별</div>'+og.map(g=>'<button type="button" class="mg-item" onclick="mgPickOrg(\''+kmEsc(g.name)+'\')">'+
+      '<div class="top"><div style="min-width:0"><div class="site">'+kmEsc(g.name)+'</div><div class="sub">현장 '+g.n+'건</div></div>'+
+      '<div><div class="m'+(g.m<0?' km-neg':'')+'">'+kmWon(g.m)+'원</div><div style="text-align:right;margin-top:3px">'+mgRatePill(g.m,g.c)+'</div></div></div>'+
+      '<div class="mg-cbar"><i class="'+(g.m<0?'neg':'')+'" style="width:'+(Math.abs(g.m)/omax*100).toFixed(1)+'%"></i></div>'+
+      '<div class="k"><span>공사 <b>'+kmWon(g.c)+'</b></span></div></button>').join('')+'<div class="mg-sec-ttl" style="margin-top:18px">거래 업체별</div>';
+  }else oc.innerHTML='';
   if(!gs.length){mg$('comp').innerHTML='<div class="km-empty"><b>분석할 현장이 없습니다</b>현장이 쌓이면 업체별 공사금액·순마진·이익률을 비교해 보여 줍니다.</div>';return}
   const maxR=Math.max(1,...gs.map(g=>g.c>0?Math.abs(g.m/g.c*100):0));
   mg$('comp').innerHTML=gs.map(g=>{
@@ -3208,7 +3263,7 @@ function mgRenderComp(){
 }
 function mgRenderMonth(){
   const y=mg$('myear').value;if(!y)return;
-  const rows=KM.state.projects.filter(p=>String(p.date||'').startsWith(y));
+  const rows=mgProjects().filter(p=>String(p.date||'').startsWith(y));
   const ms=[...Array(12)].map((_,i)=>({m:String(i+1).padStart(2,'0'),n:0,c:0,o:0,mg:0}));
   rows.forEach(p=>{const i=parseInt(String(p.date).slice(5,7),10)-1;if(i>=0&&i<12){const g=ms[i];g.n++;g.c+=Number(p.contract||0);g.o+=Number(p.cost||0);g.mg+=Number(p.margin||0)}});
   const tc=ms.reduce((a,g)=>a+g.c,0),tm=ms.reduce((a,g)=>a+g.mg,0),tn=rows.length;
@@ -3234,13 +3289,15 @@ function mgRenderMonth(){
       '<div class="k"><span>공사 <b>'+kmWon(g.c)+'</b></span><span>비용 <b>'+kmWon(g.o)+'</b></span></div></button>';
   }).join('');
 }
+function mgPickOrg(o){mg$('org').value=o;mgOrgChanged();window.scrollTo(0,0)}
 function mgGoMonth(y,m){mg$('fcompany').value='';mg$('fyear').value=y;mg$('fmonth').value=m;mg$('fsearch').value='';mgView('list');mgRenderList();window.scrollTo(0,0)}
 function mgGoCompany(name){mg$('fcompany').value=name;mg$('fyear').value=mg$('cyear').value;mg$('fmonth').value=mg$('cmonth').value;mg$('fsearch').value='';mgView('list');mgRenderList()}
 
 function mgSavePricesSoon(){
   if(mgEditingId)return;
   const p={};MG_PRICE.forEach(k=>p[k]=mgParse(mg$(k).value));
-  KM.state.prices=Object.assign({},KM.state.prices,p);
+  const org=mgFormOrg();p.org=org;
+  if(mgIsAdmin())KM.state.orgPrices[org]=Object.assign({},KM.state.orgPrices[org]||{},p);else KM.state.prices=Object.assign({},KM.state.prices,p);
   clearTimeout(mgPriceTimer);mgPriceTimer=setTimeout(()=>kmPost('prices',{prices:p}),1200);
 }
 function mgInit(){
@@ -3401,8 +3458,9 @@ function switchTab(name){
 }
 function kmRenderHome(){
   document.getElementById('home-hi').textContent=KM.cfg?.name?KM.cfg.name+'님, 안녕하세요':'안녕하세요';
+  const me=KM.state.me;document.getElementById('km-syncinfo').dataset.org=me?(me.company+(me.admin?' · 관리자':'')):'';
   document.getElementById('km-myname').textContent=KM.cfg?.name||'';
-  document.getElementById('km-syncinfo').textContent=kmSyncText();
+  const si=document.getElementById('km-syncinfo');si.textContent=(si.dataset.org?si.dataset.org+' · ':'')+kmSyncText();
 }
 function renderData(){kmRenderDataTop();renderStockData()}
 
@@ -3415,7 +3473,7 @@ async function kmLogin(){
   KM.cfg={name,pw};
   try{
     const j=await kmFetch('load');
-    if(j.me)KM.cfg.name=j.me;
+    if(j.me&&j.me.name)KM.cfg.name=j.me.name;
     kmLset('km-auth',KM.cfg);kmApply(j);enterApp();
   }catch(e){
     KM.cfg=null;
