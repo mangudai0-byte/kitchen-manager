@@ -405,7 +405,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
 .tp{padding-bottom:96px;}
 
 /* ---------- 팝업(견적서 미리보기·재고 입출고 등) ---------- */
-.ovl{background:rgba(0,0,0,.45);}
+.ovl{background:rgba(0,0,0,.45);z-index:600;}
 .modal{background:var(--km-bg);}
 .modal-bar{background:#fff;border-bottom:1px solid var(--km-line);height:56px;}
 .modal-bar h3{color:var(--km-text);font-size:17px;font-weight:700;}
@@ -533,7 +533,21 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
 .mg-rep .hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1B3A5C;padding-bottom:10px;margin-bottom:14px;}
 .mg-rep .hd .meta{font-size:12px;color:#4E5968;text-align:right;line-height:1.6;}
 .mg-rep .scope{font-size:13px;color:#4E5968;margin-top:4px;}
-.mg-rep .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px;}
+.mg-rep .top{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:14px;margin-bottom:14px;align-items:stretch;}
+.mg-rep .cost{display:flex;gap:14px;align-items:center;border:1px solid #E5E8EB;border-radius:10px;padding:10px 16px 10px 8px;}
+.mg-rep .donut{flex:0 0 230px;}
+.mg-rep .donut svg{display:block;}
+.mg-rep .legend{flex:1;min-width:0;}
+.mg-rep .legend .lt{font-size:16px;font-weight:800;color:#1B3A5C;margin-bottom:6px;}
+.mg-rep .legend .lt span{font-size:11px;font-weight:600;color:#8B95A1;margin-left:4px;}
+.mg-rep .legend table{font-size:13.5px;}
+.mg-rep .legend td{padding:4px 6px;border-bottom:1px solid #F2F4F6;}
+.mg-rep .legend td i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;}
+.mg-rep .legend .pct{font-weight:800;width:70px;font-size:15px;}
+.mg-rep .legend .sumrow td{border-top:1.5px solid #D1D6DB;font-weight:700;color:#4E5968;}
+.mg-rep .legend .mrow td{font-weight:800;border-bottom:none;}
+.mg-rep .kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:stretch;}
+.mg-rep .kpi.wide{grid-column:1 / -1;}
 .mg-rep .kpi{border:1px solid #E5E8EB;border-radius:8px;padding:8px 12px;}
 .mg-rep .kpi .l{font-size:11px;color:#8B95A1;font-weight:600;}
 .mg-rep .kpi .v{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:2px;}
@@ -3412,6 +3426,33 @@ function mgGoManager(name,org){
   mgRender();mg$('fmanager').value=name;mgView('list');mgRenderList();window.scrollTo(0,0);
 }
 // ===== 회의용 보고서 =====
+const MG_COST_ITEMS=[['pb','PB','#1B3A5C'],['hw','기본기물','#4F7CA3'],['md','MD','#9DB7D0'],['opt','선택기물','#B8860B'],['marble','대리석','#C9A27A'],['labor','시공비','#E8630A']];
+const MG_MARGIN_COLOR='#2F9E62';
+// 공사 매출 대비 비용 구조 도넛 (SVG). 매출=100%, 남는 부분이 순마진
+function mgCostDonut(items,revenue,margin){
+  const R=86,r=54,cx=100,cy=100;
+  const segs=items.filter(x=>x.v>0).map(x=>({c:x.c,v:x.v}));
+  if(margin>0)segs.push({c:MG_MARGIN_COLOR,v:margin});
+  const total=segs.reduce((a,x)=>a+x.v,0);
+  let svg='<svg viewBox="0 0 200 200" width="230" height="230" xmlns="http://www.w3.org/2000/svg">';
+  if(!(total>0)){svg+='<circle cx="100" cy="100" r="70" fill="none" stroke="#E5E8EB" stroke-width="32"/>';}
+  else{
+    let a0=-Math.PI/2;
+    segs.forEach(sg=>{
+      const frac=sg.v/total;
+      if(frac>=0.9999){svg+='<circle cx="'+cx+'" cy="'+cy+'" r="'+((R+r)/2)+'" fill="none" stroke="'+sg.c+'" stroke-width="'+(R-r)+'"/>';return}
+      const a1=a0+frac*Math.PI*2,lg=frac>0.5?1:0,P=(rad,a)=>(cx+rad*Math.cos(a)).toFixed(2)+' '+(cy+rad*Math.sin(a)).toFixed(2);
+      svg+='<path d="M'+P(R,a0)+' A'+R+' '+R+' 0 '+lg+' 1 '+P(R,a1)+' L'+P(r,a1)+' A'+r+' '+r+' 0 '+lg+' 0 '+P(r,a0)+' Z" fill="'+sg.c+'" stroke="#fff" stroke-width="1.5"/>';
+      if(frac>=0.06){const am=(a0+a1)/2,tx=cx+(R+r)/2*Math.cos(am),ty=cy+(R+r)/2*Math.sin(am);
+        svg+='<text x="'+tx.toFixed(1)+'" y="'+(ty+4).toFixed(1)+'" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">'+Math.round(sg.v/(revenue||total)*100)+'%</text>'}
+      a0=a1;
+    });
+  }
+  const rate=revenue>0?margin/revenue*100:null,neg=margin<0;
+  svg+='<text x="100" y="94" text-anchor="middle" font-size="11" fill="#8B95A1" font-weight="600">'+(neg?'적자':'이익률')+'</text>'+
+       '<text x="100" y="116" text-anchor="middle" font-size="22" font-weight="800" fill="'+(neg?'#D92D20':'#191F28')+'">'+(rate===null?'–':rate.toFixed(1)+'%')+'</text></svg>';
+  return svg;
+}
 function mgReportHTML(){
   const rows=mgListRows().slice().sort((a,b)=>String(a.date||'').localeCompare(String(b.date||'')));
   const fy=mg$('fyear').value,fm=mg$('fmonth').value,fc=mg$('fcompany').value,fmg=mg$('fmanager').value,q=mg$('fsearch').value.trim();
@@ -3420,6 +3461,14 @@ function mgReportHTML(){
   const cond=[org,period,fc&&('업체: '+fc),fmg&&('담당: '+fmg),q&&('검색: '+q)].filter(Boolean).map(kmEsc).join(' · ');
   const sum=k=>rows.reduce((a,p)=>a+Number(p[k]||0),0);
   const tc=sum('contract'),to=sum('cost'),tm=sum('margin'),rate=tc>0?tm/tc*100:null;
+  const items=MG_COST_ITEMS.map(([k,l,c])=>({k,l,c,v:sum(k)}));
+  const pctOf=v=>tc>0?(v/tc*100).toFixed(1)+'%':'–';
+  const costBlock='<div class="cost"><div class="donut">'+mgCostDonut(items,tc,tm)+'</div>'+
+    '<div class="legend"><div class="lt">비용 구조 <span>공사 매출 대비</span></div><table><tbody>'+
+    items.map(x=>'<tr><td><i style="background:'+x.c+'"></i>'+x.l+'</td><td class="r">'+kmWon(x.v)+'</td><td class="r pct">'+pctOf(x.v)+'</td></tr>').join('')+
+    '<tr class="sumrow"><td>비용 합계</td><td class="r">'+kmWon(to)+'</td><td class="r pct">'+pctOf(to)+'</td></tr>'+
+    '<tr class="mrow"><td><i style="background:'+MG_MARGIN_COLOR+'"></i>순마진</td><td class="r'+(tm<0?' neg':'')+'">'+kmWon(tm)+'</td><td class="r pct'+(tm<0?' neg':'')+'">'+pctOf(tm)+'</td></tr>'+
+    '</tbody></table></div></div>';
   const rcls=(m,c)=>!(c>0)?'':(m<0?'neg':(m/c*100<10?'low':''));
   const rtxt=(m,c)=>c>0?(m/c*100).toFixed(1)+'%':'–';
   const now=new Date(),stamp=mgToday()+' '+kmTime(now);
@@ -3436,13 +3485,13 @@ function mgReportHTML(){
   return {size,count:rows.length,html:
     '<div class="hd"><div><h1>현장별 마진 보고서</h1><div class="scope">'+cond+'</div></div>'+
     '<div class="meta">작성 '+kmEsc(stamp)+'<br>작성자 '+kmEsc(KM.cfg?.name||'')+'</div></div>'+
-    '<div class="kpis">'+
+    '<div class="top">'+costBlock+'<div class="kpis">'+
       '<div class="kpi"><div class="l">현장 수</div><div class="v">'+rows.length+'건</div></div>'+
-      '<div class="kpi"><div class="l">총공사금액</div><div class="v">'+kmWon(tc)+'</div></div>'+
-      '<div class="kpi"><div class="l">비용 합계</div><div class="v">'+kmWon(to)+'</div></div>'+
-      '<div class="kpi"><div class="l">순마진 합계</div><div class="v'+(tm<0?' neg':'')+'">'+kmWon(tm)+'</div></div>'+
       '<div class="kpi"><div class="l">이익률</div><div class="v'+(rate!==null&&rate<0?' neg':'')+'">'+(rate===null?'–':rate.toFixed(1)+'%')+'</div></div>'+
-    '</div>'+
+      '<div class="kpi"><div class="l">총공사금액 (매출)</div><div class="v">'+kmWon(tc)+'</div></div>'+
+      '<div class="kpi"><div class="l">비용 합계</div><div class="v">'+kmWon(to)+'</div></div>'+
+      '<div class="kpi wide"><div class="l">순마진 합계</div><div class="v'+(tm<0?' neg':'')+'">'+kmWon(tm)+'</div></div>'+
+    '</div></div>'+
     '<table class="main"><thead><tr><th class="r">No</th><th>날짜</th>'+(showOrg?'<th>회사</th>':'')+'<th>업체</th><th>현장명</th><th>담당자</th><th class="r">총공사금액</th><th class="r">비용</th><th class="r">순마진</th><th class="r">이익률</th></tr></thead>'+
     '<tbody>'+(body||'<tr><td colspan="10" style="text-align:center;padding:20px;color:#8B95A1">조건에 맞는 현장이 없습니다</td></tr>')+'</tbody>'+
     '<tfoot><tr><td colspan="'+(showOrg?6:5)+'">합계 '+rows.length+'건</td><td class="r">'+kmWon(tc)+'</td><td class="r">'+kmWon(to)+'</td><td class="r'+(tm<0?' neg':'')+'">'+kmWon(tm)+'</td><td class="r">'+(rate===null?'–':rate.toFixed(1)+'%')+'</td></tr></tfoot></table>'+
