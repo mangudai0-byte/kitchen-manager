@@ -327,11 +327,11 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
   <div class="pw-box">
     <div class="pw-logo">KM</div>
     <div class="pw-title">키친매니저</div>
-    <div class="pw-sub">오션메이드 업무 앱 · 처음 한 번만 입력하면 됩니다</div>
-    <label class="pw-label" for="pw-code">팀 코드</label>
-    <input class="pw-field" id="pw-code" type="password" autocomplete="off" onkeydown="if(event.key==='Enter')document.getElementById('pw-name').focus()">
+    <div class="pw-sub">오션메이드 업무 앱 · 관리자에게 받은 이름과 비밀번호를 입력하세요</div>
     <label class="pw-label" for="pw-name">이름</label>
-    <input class="pw-field" id="pw-name" type="text" placeholder="예: 김대리" autocomplete="name" onkeydown="if(event.key==='Enter')kmLogin()">
+    <input class="pw-field" id="pw-name" type="text" placeholder="예: 김대리" autocomplete="username" onkeydown="if(event.key==='Enter')document.getElementById('pw-pass').focus()">
+    <label class="pw-label" for="pw-pass">비밀번호</label>
+    <input class="pw-field" id="pw-pass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')kmLogin()">
     <button class="pw-btn" id="pw-btn" onclick="kmLogin()">시작하기</button>
     <div class="pw-err" id="pw-err" role="alert"></div>
   </div>
@@ -365,8 +365,8 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
     <div class="card" style="margin-top:18px">
       <div class="card-header"><div class="icon">👤</div><h2>내 정보</h2></div>
       <div class="card-body">
-        <div class="field"><label for="km-myname">이름 (저장한 사람으로 기록됩니다)</label>
-          <div class="km-row"><input id="km-myname" type="text" style="flex:1;min-width:0"><button type="button" class="km-btn pri" onclick="kmRename()">변경</button></div></div>
+        <div class="km-row" style="justify-content:space-between;margin-bottom:8px"><span style="font-size:13px;color:var(--g5)">로그인한 이름</span><b id="km-myname" style="font-size:16px;color:var(--br)"></b></div>
+        <div class="km-hint" style="margin-bottom:6px">이름과 비밀번호는 관리자가 구글 시트의 ‘직원’ 시트에서 바꿉니다.</div>
         <div class="km-hint" id="km-syncinfo"></div>
         <div class="km-row" style="margin-top:10px">
           <button type="button" class="km-btn" onclick="kmLoad().then(()=>kmToast('최신 내용을 불러왔습니다.'))">지금 새로고침</button>
@@ -2738,7 +2738,7 @@ function doPrint(){
 const KM_URL='https://script.google.com/macros/s/AKfycbynWhFBjMFuzSEQ4RI7QYotVGBqnAINo40jekqDwartIPCF--DVrK7TA_1nR9R-5I4wZQ/exec';
 const KM_DEF_PRICES={p15:70000,p18:80000,pura:39000,rate:5};
 const KM={
-  cfg:null,                 // {code,name}
+  cfg:null,                 // {name,pw}
   state:{projects:[],prices:Object.assign({},KM_DEF_PRICES),stock:[],stockLog:[],sales:[],kv:{}},
   snap:{},                  // 마지막으로 서버와 맞춘 내용 (바뀐 것만 보내기 위해)
   queue:Promise.resolve(),pending:0,lastSync:null,tab:'film',curSale:{},started:false
@@ -2761,13 +2761,8 @@ function kmToast(msg,err){
 async function kmFetch(action,payload){
   const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),30000);
   try{
-    let res;
-    if(action==='load'){
-      res=await fetch(KM_URL+'?code='+encodeURIComponent(KM.cfg.code)+'&t='+Date.now(),{signal:ctl.signal});
-    }else{
-      res=await fetch(KM_URL,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body:JSON.stringify(Object.assign({code:KM.cfg.code,author:KM.cfg.name||'',action},payload))});
-    }
+    const res=await fetch(KM_URL,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(Object.assign({name:KM.cfg.name,pw:KM.cfg.pw,action},payload))});
     const j=await res.json();
     if(!j.ok){const e=new Error(j.error||'error');e.code=j.error||'error';throw e}
     return j;
@@ -2820,7 +2815,8 @@ function kmPost(action,payload){
 
 let kmLastErr=0;
 function kmHandleErr(e,quiet){
-  if(e&&e.code==='bad_code'){kmLogout('팀 코드가 바뀌었습니다. 새 팀 코드로 다시 들어와 주세요.');return}
+  if(e&&e.code==='bad_login'){kmLogout('이름이나 비밀번호가 바뀌었습니다. 다시 로그인해 주세요.');return}
+  if(e&&e.code==='bad_code'){kmToast('구글 시트 스크립트가 예전 버전입니다. 관리자가 새 Code.gs를 새 버전으로 배포해야 합니다.',true);return}
   if(e&&e.code==='bad_action'){kmToast('구글 시트의 스크립트가 예전 버전이라 저장하지 못했습니다. 관리자가 Apps Script를 새 Code.gs로 바꾸고 새 버전으로 배포해야 합니다.',true);return}
   if(quiet&&Date.now()-kmLastErr<60000)return;
   kmLastErr=Date.now();
@@ -3083,11 +3079,6 @@ function kmRenderDataTop(){
 function kmSyncText(){
   return '공용 저장소 연결됨'+(KM.lastSync?' · 마지막으로 불러온 시각 '+kmTime(KM.lastSync):'')+' · 화면은 1분마다 자동으로 새로 불러옵니다.';
 }
-function kmRename(){
-  const v=document.getElementById('km-myname').value.trim();
-  if(!v){kmToast('이름을 입력하세요.',true);return}
-  KM.cfg.name=v;kmLset('km-auth',KM.cfg);kmToast('이름을 '+v+'(으)로 바꿨습니다.');kmRenderHome();
-}
 function kmLocalCounts(){
   const a=kmLget('om_cl_film')||[],b=kmLget('om_cl_door')||[],s=kmLget('om_sales')||[],p=kmLget('furn-margin-projects-local')||[];
   return{clients:(Array.isArray(a)?a.length:0)+(Array.isArray(b)?b.length:0),sales:Array.isArray(s)?s.length:0,projects:Array.isArray(p)?p.length:0};
@@ -3188,24 +3179,27 @@ function kmRenderHome(){
   document.getElementById('home-s-film').textContent=[fs?'이번 달 견적 '+fs+'건':'',low?'재고 부족 '+low+'종':''].filter(Boolean).join(' · ');
   document.getElementById('home-s-door').textContent=ds?'이번 달 견적 '+ds+'건':'';
   document.getElementById('home-sub').textContent='오션메이드 업무 앱'+(KM.cfg?.name?' · '+KM.cfg.name+'님':'');
-  const nm=document.getElementById('km-myname');if(nm&&document.activeElement!==nm)nm.value=KM.cfg?.name||'';
+  document.getElementById('km-myname').textContent=KM.cfg?.name||'';
   document.getElementById('km-syncinfo').textContent=kmSyncText();
 }
 function renderData(){kmRenderDataTop();renderStockData()}
 
 function kmLoginErr(t){const e=document.getElementById('pw-err');e.textContent=t;e.classList.toggle('show',!!t)}
 async function kmLogin(){
-  const code=document.getElementById('pw-code').value.trim(),name=document.getElementById('pw-name').value.trim();
-  if(!code){kmLoginErr('팀 코드를 입력하세요.');return}
-  if(!name){kmLoginErr('이름을 입력하세요. 저장한 사람으로 기록됩니다.');return}
+  const name=document.getElementById('pw-name').value.trim(),pw=document.getElementById('pw-pass').value.trim();
+  if(!name){kmLoginErr('이름을 입력하세요.');return}
+  if(!pw){kmLoginErr('비밀번호를 입력하세요.');return}
   const btn=document.getElementById('pw-btn');btn.disabled=true;btn.textContent='확인 중…';kmLoginErr('');
-  KM.cfg={code,name};
+  KM.cfg={name,pw};
   try{
     const j=await kmFetch('load');
+    if(j.me)KM.cfg.name=j.me;
     kmLset('km-auth',KM.cfg);kmApply(j);enterApp();
   }catch(e){
     KM.cfg=null;
-    kmLoginErr(e.code==='bad_code'?'팀 코드가 맞지 않습니다.':'연결하지 못했습니다. 인터넷 연결을 확인하세요.');
+    kmLoginErr(e.code==='bad_login'?'이름 또는 비밀번호가 맞지 않습니다. 등록이 안 되어 있으면 관리자에게 요청하세요.'
+      :e.code==='bad_code'?'구글 시트 스크립트가 예전 버전입니다. 관리자에게 알려 주세요.'
+      :'연결하지 못했습니다. 인터넷 연결을 확인하세요.');
   }
   btn.disabled=false;btn.textContent='시작하기';
 }
@@ -3214,7 +3208,7 @@ function kmLogout(msg){
   location.hash='';
   document.getElementById('app').style.display='none';
   document.getElementById('pw-screen').classList.remove('hidden');
-  document.getElementById('pw-code').value='';
+  document.getElementById('pw-pass').value='';
   kmLoginErr(msg||'');
   KM.started=false;
 }
@@ -3240,12 +3234,13 @@ function initAll(){
 }
 window.addEventListener('load',function(){
   const cfg=kmLget('km-auth');
-  if(cfg&&cfg.code){
+  if(cfg&&cfg.code&&!cfg.pw){kmLdel('km-auth');kmLdel('km-cache');kmLoginErr('로그인 방식이 바뀌었습니다. 이름과 개인 비밀번호로 들어와 주세요.');document.getElementById('pw-name').value=cfg.name||''}
+  else if(cfg&&cfg.pw){
     KM.cfg=cfg;
     const cache=kmLget('km-cache');if(cache)kmApply(cache,true);
     enterApp();kmLoad();
   }else{
-    setTimeout(()=>{const i=document.getElementById('pw-code');if(i)i.focus();},100);
+    setTimeout(()=>{const n=document.getElementById('pw-name'),p=document.getElementById('pw-pass');(n&&n.value?p:n)?.focus();},100);
   }
   setInterval(()=>{if(KM.cfg&&document.visibilityState==='visible')kmLoad()},60000);
   document.addEventListener('visibilitychange',()=>{if(KM.cfg&&document.visibilityState==='visible'&&(!KM.lastSync||Date.now()-KM.lastSync>15000))kmLoad()});

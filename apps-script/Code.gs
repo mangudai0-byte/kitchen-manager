@@ -1,12 +1,15 @@
 /**
  * 키친매니저 — 공용 저장소 (구글 스프레드시트 + Apps Script 웹앱)
  *
- * 1) 아래 TEAM_CODE를 직원들과 공유할 팀 코드로 바꾸세요.
- *    ※ 실제 팀 코드는 GitHub에 올리지 마세요. 이 파일은 공개되어 있습니다.
- * 2) 배포 → 새 배포(처음) 또는 배포 관리 → 수정 → 새 버전(업데이트)
- *    유형: 웹 앱, 실행 사용자: 나, 액세스 권한: 모든 사용자
+ * 이 파일은 그대로 붙여 넣으면 됩니다. 고칠 곳이 없습니다.
+ * 직원 로그인은 스프레드시트의 '직원' 시트에서 관리합니다.
+ *   A열 이름, B열 비밀번호 (C열 메모는 자유)
+ *   - 직원 추가: 한 줄 추가
+ *   - 퇴사/차단: 그 줄 삭제
+ *   - 비밀번호 변경: B열 수정
+ * 배포: 배포 관리 → 앱이 쓰는 배포 선택 → 연필(수정) → 버전: 새 버전 → 배포
+ *       (유형: 웹 앱, 실행 사용자: 나, 액세스 권한: 모든 사용자)
  */
-const TEAM_CODE = '여기에-팀-코드를-적으세요';
 
 const DEFAULT_PRICES = { p15: 70000, p18: 80000, pura: 39000, rate: 5 };
 
@@ -33,27 +36,51 @@ const COLLECTIONS = {
   sales: { sheet: '견적기록', cols: [['date', '날짜'], ['type', '유형'], ['client', '거래처'], ['site', '현장'], ['total', '금액']] }
 };
 const KV_SHEET = '공유값';
+const STAFF_SHEET = '직원';
 const SETTINGS_SHEET = '설정';
 
 /* ---------- 요청 처리 ---------- */
 function doGet(e) {
-  const p = (e && e.parameter) || {};
-  if (p.code !== TEAM_CODE) return out({ ok: false, error: 'bad_code' });
-  return out(Object.assign({ ok: true }, readAll()));
+  // 데이터는 로그인(POST)으로만 내보냅니다. 여기서는 동작 여부만 알려 줍니다.
+  staffSheet();
+  return out({ ok: true, app: 'kitchen-manager' });
+}
+
+/* ---------- 직원 로그인 ---------- */
+function staffSheet() {
+  const sh = getSheet(STAFF_SHEET, ['이름', '비밀번호', '메모']);
+  return sh;
+}
+// 이름과 비밀번호가 '직원' 시트의 한 줄과 같으면 그 이름을 돌려줌
+function checkLogin(name, pw) {
+  name = String(name || '').trim(); pw = String(pw || '').trim();
+  if (!name || !pw) return '';
+  const sh = staffSheet();
+  const n = sh.getLastRow() - 1;
+  if (n < 1) return '';
+  const rows = sh.getRange(2, 1, n, 2).getValues();
+  for (let i = 0; i < rows.length; i++) {
+    if (String(rows[i][0]).trim() === name && String(rows[i][1]).trim() === pw) return name;
+  }
+  return '';
 }
 
 function doPost(e) {
   let body;
   try { body = JSON.parse(e.postData.contents); } catch (err) { return out({ ok: false, error: 'bad_request' }); }
-  if (!body || body.code !== TEAM_CODE) return out({ ok: false, error: 'bad_code' });
-  const author = String(body.author || '');
+  const author = checkLogin(body && body.name, body && body.pw);
+  if (!author) { Utilities.sleep(800); return out({ ok: false, error: 'bad_login' }); }
+  if (body.action === 'load') return out(Object.assign({ ok: true, me: author }, readAll()));
 
   const lock = LockService.getScriptLock();
   lock.waitLock(25000);
   try {
     switch (body.action) {
       case 'save': // 마진계산 현장 저장 (여러 건 가능)
-        (Array.isArray(body.projects) ? body.projects : [body.project]).forEach(saveProject);
+        (Array.isArray(body.projects) ? body.projects : [body.project]).forEach(p => {
+          if (p && !(p.onlyIfNewer && p.author)) p.author = author; // 저장한 사람은 로그인한 이름으로
+          saveProject(p);
+        });
         break;
       case 'delete': // 마진계산 현장 삭제
         deleteProject(String(body.id || ''));
@@ -70,7 +97,7 @@ function doPost(e) {
       default:
         return out({ ok: false, error: 'bad_action' });
     }
-    return out(Object.assign({ ok: true }, readAll()));
+    return out(Object.assign({ ok: true, me: author }, readAll()));
   } finally {
     lock.releaseLock();
   }
