@@ -207,7 +207,7 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
 .type-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;margin-right:4px;}
 .tb-film{background:#E8F0FE;color:#1A4FA0;}
 .tb-door{background:#FEE8E0;color:#C04010;}
-#grade-btn-1,#grade-btn-2{display:flex;align-items:center;justify-content:center;padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;transition:all .15s;}
+#grade-btn-1,#grade-btn-2,#hansol-grade-btn-std,#hansol-grade-btn-y{display:flex;align-items:center;justify-content:center;padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;transition:all .15s;}
 
 /* ===== 키친매니저 추가 ===== */
 [hidden]{display:none!important;}
@@ -852,6 +852,13 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
             <label id="grade-btn-2" onclick="setDoorGrade(2)" style="border:2px solid var(--bd);background:white;color:var(--g5);">B등급</label>
           </div>
         </div>
+        <div class="field" style="margin-top:4px">
+          <label>한솔 적용 단가 <span style="font-size:9px;color:var(--g5);font-weight:400">(내부용)</span></label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <label id="hansol-grade-btn-std" onclick="setHansolDoorGrade('std')" style="border:2px solid var(--br);background:var(--br);color:white;">표준단가</label>
+            <label id="hansol-grade-btn-y" onclick="setHansolDoorGrade('y')" style="border:2px solid var(--bd);background:white;color:var(--g5);">Y단가</label>
+          </div>
+        </div>
       </div>
     </div>
     <div class="card">
@@ -1278,78 +1285,85 @@ const DOOR_PRICES=[
 ];
 const SHEET_W=2440,SHEET_H=1220,KERF=6;
 
-// ===== 한솔 생산도어 단가표 (단일가, 2026.06.18~) =====
+// ===== 한솔 생산도어 단가표 (2026.06.18~) =====
+// std: 표준단가 (시그니처·스페셜 = 보드매입가×2, 엔트리 = 보드매입가+최저가공비 50,000)
+// y: Y단가 (보드매입가 + 가공비 45,000) · 보드매입가는 VAT 포함 · 1,000원 단위 올림
 const HANSOL_DOOR_PRICES=[
-  {name:'피케그레이',cat:'시그니처',price:153000},
-  {name:'피케딥브라운',cat:'시그니처',price:153000},
-  {name:'캐니언미스트',cat:'시그니처',price:153000},
-  {name:'캐니언그레이지',cat:'시그니처',price:153000},
-  {name:'테네시오크',cat:'시그니처',price:153000},
-  {name:'테니시월넛',cat:'시그니처',price:153000},
-  {name:'테네시다크월넛',cat:'시그니처',price:153000},
-  {name:'클레이크림',cat:'시그니처',price:153000},
-  {name:'클레이포그',cat:'시그니처',price:153000},
-  {name:'클레이샌드',cat:'시그니처',price:153000},
-  {name:'슬랫크림',cat:'시그니처',price:153000},
-  {name:'슬랫샌드',cat:'시그니처',price:153000},
-  {name:'콘크리트크림',cat:'시그니처',price:153000},
-  {name:'콘크리트화이트',cat:'시그니처',price:153000},
-  {name:'콘크리트샌드',cat:'시그니처',price:153000},
-  {name:'칼프그레이',cat:'시그니처',price:153000},
-  {name:'칼프브라운',cat:'시그니처',price:153000},
-  {name:'칼프블랙',cat:'시그니처',price:153000},
-  {name:'메종라이트오크',cat:'시그니처',price:153000},
-  {name:'쉘화이트우드',cat:'시그니처',price:153000},
-  {name:'쉘그레이우드',cat:'시그니처',price:153000},
-  {name:'조슈아라이트',cat:'시그니처',price:153000},
-  {name:'베르겐오크',cat:'시그니처',price:153000},
-  {name:'내츄럴크랙오크',cat:'시그니처',price:153000},
-  {name:'베이라이트오크',cat:'시그니처',price:153000},
-  {name:'베이내츄럴오크',cat:'시그니처',price:153000},
-  {name:'엘로이실버',cat:'시그니처',price:153000},
-  {name:'엘로이골드',cat:'시그니처',price:153000},
-  {name:'바이브실버',cat:'시그니처',price:153000},
-  {name:'바이브골드',cat:'시그니처',price:153000},
-  {name:'플루트브라운',cat:'시그니처',price:153000},
-  {name:'크라프트화이트',cat:'시그니처',price:153000},
-  {name:'헤센브라운',cat:'시그니처',price:153000},
-  {name:'안도크림',cat:'스페셜',price:123000},
-  {name:'코멘트옐로우',cat:'스페셜',price:123000},
-  {name:'리유베이지',cat:'스페셜',price:123000},
-  {name:'샤인펄화이트',cat:'스페셜',price:123000},
-  {name:'퍼펙트화이트',cat:'스페셜',price:123000},
-  {name:'클린화이트',cat:'스페셜',price:123000},
-  {name:'도브화이트',cat:'스페셜',price:123000},
-  {name:'크림화이트',cat:'스페셜',price:123000},
-  {name:'포그그레이',cat:'스페셜',price:123000},
-  {name:'샌드그레이',cat:'스페셜',price:123000},
-  {name:'새틴베이지',cat:'스페셜',price:123000},
-  {name:'라이트그레이',cat:'스페셜',price:123000},
-  {name:'모노그레이',cat:'스페셜',price:123000},
-  {name:'애쉬베이지',cat:'스페셜',price:123000},
-  {name:'다크그레이',cat:'스페셜',price:123000},
-  {name:'바살트그레이',cat:'스페셜',price:123000},
-  {name:'럭스블랙',cat:'스페셜',price:123000},
-  {name:'코튼블루',cat:'스페셜',price:123000},
-  {name:'로지핑크',cat:'스페셜',price:123000},
-  {name:'로투스핑크',cat:'스페셜',price:123000},
-  {name:'미스트그린',cat:'스페셜',price:123000},
-  {name:'제스퍼그린',cat:'스페셜',price:123000},
-  {name:'스모키올리브',cat:'스페셜',price:123000},
-  {name:'인디고',cat:'스페셜',price:123000},
-  {name:'밀키화이트',cat:'엔트리',price:96000},
-  {name:'실키화이트',cat:'엔트리',price:96000},
-  {name:'미스트그레이',cat:'엔트리',price:96000},
-  {name:'그레이지',cat:'엔트리',price:96000},
-  {name:'쿨그레이',cat:'엔트리',price:96000},
-  {name:'모카그레이',cat:'엔트리',price:96000},
-  {name:'차콜그레이',cat:'엔트리',price:96000},
-  {name:'오프그레이',cat:'엔트리',price:96000},
-  {name:'크레마그레이',cat:'엔트리',price:96000},
-  {name:'소프트베이지',cat:'엔트리',price:96000},
-  {name:'올리브',cat:'엔트리',price:96000},
-  {name:'듄그레이',cat:'엔트리',price:96000},
-  {name:'에센셜베이',cat:'엔트리',price:96000},
+  {name:'스모크브라운오크',cat:'시그니처',std:153000,y:122000},
+  {name:'스모크그레이오크',cat:'시그니처',std:153000,y:122000},
+  {name:'라우에리니아',cat:'시그니처',std:153000,y:122000},
+  {name:'라우에베니아',cat:'시그니처',std:153000,y:122000},
+  {name:'브레시아티크',cat:'시그니처',std:153000,y:122000},
+  {name:'엘리내추럴',cat:'시그니처',std:153000,y:122000},
+  {name:'엘리다크브라운',cat:'시그니처',std:153000,y:122000},
+  {name:'조슈아오가닉',cat:'시그니처',std:153000,y:122000},
+  {name:'앤그레이',cat:'시그니처',std:153000,y:122000},
+  {name:'몬세라트월넛',cat:'시그니처',std:153000,y:122000},
+  {name:'다다모스',cat:'시그니처',std:153000,y:122000},
+  {name:'다다포레스트',cat:'시그니처',std:153000,y:122000},
+  {name:'에버오크내추럴',cat:'시그니처',std:153000,y:122000},
+  {name:'에버오크베이지',cat:'시그니처',std:153000,y:122000},
+  {name:'에버오크토프',cat:'시그니처',std:153000,y:122000},
+  {name:'에버오크번그레이',cat:'시그니처',std:153000,y:122000},
+  {name:'조슈아라이트',cat:'시그니처',std:153000,y:122000},
+  {name:'베르겐오크',cat:'시그니처',std:153000,y:122000},
+  {name:'테네시월넛',cat:'시그니처',std:153000,y:122000},
+  {name:'테네시다크월넛',cat:'시그니처',std:153000,y:122000},
+  {name:'테네시오크',cat:'시그니처',std:153000,y:122000},
+  {name:'칼프브라운',cat:'시그니처',std:153000,y:122000},
+  {name:'칼프블랙',cat:'시그니처',std:153000,y:122000},
+  {name:'칼프그레이',cat:'시그니처',std:153000,y:122000},
+  {name:'내츄럴크랙오크',cat:'시그니처',std:153000,y:122000},
+  {name:'베이내추럴오크',cat:'시그니처',std:153000,y:122000},
+  {name:'메종라이트오크',cat:'시그니처',std:153000,y:122000},
+  {name:'플라스터화이트',cat:'시그니처',std:153000,y:122000},
+  {name:'플라스터크림',cat:'시그니처',std:153000,y:122000},
+  {name:'플라스터그레이',cat:'시그니처',std:153000,y:122000},
+  {name:'클레이크림',cat:'시그니처',std:153000,y:122000},
+  {name:'클레이포그',cat:'시그니처',std:153000,y:122000},
+  {name:'클레이샌드',cat:'시그니처',std:153000,y:122000},
+  {name:'콘크리트화이트',cat:'시그니처',std:153000,y:122000},
+  {name:'콘크리트크림',cat:'시그니처',std:153000,y:122000},
+  {name:'콘크리트샌드',cat:'시그니처',std:153000,y:122000},
+  {name:'로멘토수아',cat:'시그니처',std:153000,y:122000},
+  {name:'로멘토누아',cat:'시그니처',std:153000,y:122000},
+  {name:'페즈크림',cat:'시그니처',std:153000,y:122000},
+  {name:'페즈브라운',cat:'시그니처',std:153000,y:122000},
+  {name:'피케그레이',cat:'시그니처',std:153000,y:122000},
+  {name:'엘로이실버',cat:'시그니처',std:153000,y:122000},
+  {name:'바이브실버',cat:'시그니처',std:153000,y:122000},
+  {name:'크림화이트무',cat:'스페셜',std:123000,y:107000},
+  {name:'크림화이트유',cat:'스페셜',std:123000,y:107000},
+  {name:'퍼펙트화이트무',cat:'스페셜',std:123000,y:107000},
+  {name:'퍼펙트화이트유',cat:'스페셜',std:123000,y:107000},
+  {name:'샤인펄화이트',cat:'스페셜',std:123000,y:107000},
+  {name:'도브화이트',cat:'스페셜',std:123000,y:107000},
+  {name:'클린화이트',cat:'스페셜',std:123000,y:107000},
+  {name:'미카도화이트',cat:'스페셜',std:123000,y:107000},
+  {name:'안도크림',cat:'스페셜',std:123000,y:107000},
+  {name:'에크루그레이',cat:'스페셜',std:123000,y:107000},
+  {name:'젠화이트',cat:'스페셜',std:123000,y:107000},
+  {name:'포그그레이',cat:'스페셜',std:123000,y:107000},
+  {name:'샌드그레이무',cat:'스페셜',std:123000,y:107000},
+  {name:'샌드그레이유',cat:'스페셜',std:123000,y:107000},
+  {name:'새틴베이지',cat:'스페셜',std:123000,y:107000},
+  {name:'애쉬베이지',cat:'스페셜',std:123000,y:107000},
+  {name:'다크그레이',cat:'스페셜',std:123000,y:107000},
+  {name:'라이트그레이',cat:'스페셜',std:123000,y:107000},
+  {name:'모노그레이무',cat:'스페셜',std:123000,y:107000},
+  {name:'모노그레이유',cat:'스페셜',std:123000,y:107000},
+  {name:'로얄버건디',cat:'스페셜',std:123000,y:107000},
+  {name:'리치브라운무',cat:'스페셜',std:123000,y:107000},
+  {name:'리치브라운유',cat:'스페셜',std:123000,y:107000},
+  {name:'리유베이지',cat:'스페셜',std:123000,y:107000},
+  {name:'코멘트옐로우',cat:'스페셜',std:123000,y:107000},
+  {name:'미스트그린',cat:'스페셜',std:123000,y:107000},
+  {name:'마린블루',cat:'스페셜',std:123000,y:107000},
+  {name:'밀키화이트',cat:'엔트리',std:96000,y:91000},
+  {name:'실키화이트',cat:'엔트리',std:96000,y:91000},
+  {name:'에센셜베이지',cat:'엔트리',std:96000,y:91000},
+  {name:'듄그레이',cat:'엔트리',std:96000,y:91000},
+  {name:'그레이지',cat:'엔트리',std:96000,y:91000},
 ];
 
 // ===== 필름 견적 =====
@@ -1722,7 +1736,17 @@ document.addEventListener('click',e=>{
 });
 
 // ===== 도어 =====
-let doorGroups=[],doorCnt=0,doorGrade=1;
+let doorGroups=[],doorCnt=0,doorGrade=1,hansolDoorGrade='std';
+const HANSOL_GRADE_LABEL={std:'표준단가',y:'Y단가'};
+function setHansolDoorGrade(k){
+  hansolDoorGrade=k;
+  ['std','y'].forEach(n=>{
+    const b=document.getElementById(`hansol-grade-btn-${n}`);if(!b)return;
+    if(n===k){b.style.background='var(--br)';b.style.borderColor='var(--br)';b.style.color='white';b.style.fontWeight='800';}
+    else{b.style.background='white';b.style.borderColor='var(--bd)';b.style.color='var(--g5)';b.style.fontWeight='700';}
+  });
+  renderDoorGroups();
+}
 function setDoorGrade(g){
   doorGrade=g;
   [1,2].forEach(n=>{
@@ -1735,7 +1759,7 @@ function setDoorGrade(g){
 function getUnitPrice(brand,key){
   if(brand==='hansol'){
     const p=HANSOL_DOOR_PRICES.find(p=>p.name===key);
-    return p?p.price:0;
+    return p?p[hansolDoorGrade]:0;
   }
   const[name,type]=key.split('|');
   const p=DOOR_PRICES.find(p=>p.name===name&&p.type===type)||DOOR_PRICES.find(p=>p.name===name);
@@ -1976,6 +2000,7 @@ function showShareView(){
 }
 
 function showHansolShareView(){
+  const hansolKey=hansolPriceKey(),hansolLabel=HANSOL_GRADE_LABEL[hansolKey];
   const catOrder=['시그니처','스페셜','엔트리'];
   const catColor={'시그니처':'#1B3A5C','스페셜':'#7B5EA7','엔트리':'#2F7D4F'};
   const groups={};
@@ -1989,7 +2014,7 @@ function showHansolShareView(){
     const rows=items.map((p,i)=>`
       <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 7px;background:${i%2===0?'#fff':'#FAFBFC'};border-bottom:1px solid #EDE8E0;gap:4px;">
         <span style="font-size:10.5px;color:#16232E;font-weight:500;line-height:1.25;word-break:keep-all;flex:1">${p.name}</span>
-        <span style="font-size:11.5px;font-weight:800;color:${color};white-space:nowrap;flex-shrink:0">${p.price.toLocaleString()}<span style="font-size:9px;font-weight:400;color:#bbb">원</span></span>
+        <span style="font-size:11.5px;font-weight:800;color:${color};white-space:nowrap;flex-shrink:0">${p[hansolKey].toLocaleString()}<span style="font-size:9px;font-weight:400;color:#bbb">원</span></span>
       </div>`).join('');
     return `<div style="margin-bottom:8px;border-radius:7px;overflow:hidden;border:1.5px solid #C7D0D9;break-inside:avoid">
       <div style="background:${color};padding:4px 8px;display:flex;align-items:center;justify-content:space-between">
@@ -2003,7 +2028,7 @@ function showHansolShareView(){
 
   const html=`<div style="padding:12px 12px 20px;background:white;font-family:'Noto Sans KR',sans-serif;">
     <div style="text-align:center;padding-bottom:10px;margin-bottom:12px;border-bottom:2.5px solid #1B3A5C">
-      <div style="font-size:15px;font-weight:900;color:#1B3A5C;letter-spacing:1.5px">한솔 생산도어 단가표</div>
+      <div style="font-size:15px;font-weight:900;color:#1B3A5C;letter-spacing:1.5px">한솔 생산도어 단가표 <span style="font-size:12px;color:#E8630A">(${hansolLabel})</span></div>
       <div style="display:flex;justify-content:center;gap:8px;margin-top:4px;flex-wrap:wrap">
         <span style="font-size:10px;color:#5A6B7A">기준일: ${dateStr}</span>
         <span style="font-size:10px;color:#ccc">|</span>
@@ -2014,7 +2039,7 @@ function showHansolShareView(){
     </div>
     <div style="columns:2;column-gap:8px;column-fill:balance">${sections}</div>
     <div style="margin-top:10px;padding:8px 10px;background:#EEF8EE;border-radius:7px;border:1.5px solid #A8D4A8">
-      <div style="font-size:10px;color:#2A6A2A;line-height:1.8">✅ <b>단가는 부가세 포함 · 단일가(등급 구분 없음)</b><br>📞 041-534-7475 · 기업은행 332-135674-04-011 (㈜오션메이드)</div>
+      <div style="font-size:10px;color:#2A6A2A;line-height:1.8">✅ <b>단가는 부가세 포함</b> · ${hansolLabel} · 제로조인트 기준<br>📞 041-534-7475 · 기업은행 332-135674-04-011 (㈜오션메이드)</div>
     </div>
   </div>`;
 
@@ -2024,7 +2049,7 @@ function showHansolShareView(){
 }
 
 function shareFileBaseName(){
-  return priceManufacturer==='hansol'?'한솔_생산도어_단가표':'예림_생산도어_단가표';
+  return priceManufacturer==='hansol'?('한솔_생산도어_단가표_'+HANSOL_GRADE_LABEL[hansolPriceKey()]):'예림_생산도어_단가표';
 }
 
 // ===== 단가표 이미지/PDF 저장 =====
@@ -2205,6 +2230,7 @@ let priceTabGrade=1;
 let priceManufacturer='yerim'; // 'yerim' | 'hansol'
 let doorPriceSectionOpen={'매트':true,'글로시':false,'PP':false,'프레스티지 PP':false,'프레스티지 아크릴':false,'PVC (데코보드)':false,'PET':false,'MFB':false,'UV':false,'방염보드(MFB/MFC)':false};
 let hansolPriceSectionOpen={'시그니처':true,'스페셜':false,'엔트리':false};
+function hansolPriceKey(){return priceTabGrade===2?'y':'std';}
 function setPriceManufacturer(m){
   priceManufacturer=m;
   const s1='flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:800;cursor:pointer;background:var(--or);color:white;font-family:inherit;';
@@ -2214,13 +2240,14 @@ function setPriceManufacturer(m){
   const gradeWrap=document.getElementById('grade-toggle-wrap');
   const title=document.getElementById('price-tab-title'),sub=document.getElementById('price-tab-sub');
   const shareTitle=document.getElementById('share-modal-title');
+  gradeWrap.style.display='flex';
+  document.getElementById('pt-g1').textContent=m==='hansol'?'표준단가':'A등급';
+  document.getElementById('pt-g2').textContent=m==='hansol'?'Y단가':'B등급';
   if(m==='yerim'){
-    gradeWrap.style.display='flex';
     title.textContent='예림 생산도어 단가표';
     sub.textContent='SUPER 레이저도어 · 2025.06.15 기준';
     if(shareTitle)shareTitle.textContent='예림 생산도어 단가표';
   }else{
-    gradeWrap.style.display='none';
     title.textContent='한솔 생산도어 단가표';
     sub.textContent='제로조인트 기준단가표 · 2026.06.18 기준';
     if(shareTitle)shareTitle.textContent='한솔 생산도어 단가표';
@@ -2281,6 +2308,7 @@ function renderHansolPriceTable(){
   const el=document.getElementById('price-table-content');if(!el)return;
   const q=(document.getElementById('price-search')?.value||'').toLowerCase();
   const hasSearch=q.length>0;
+  const hansolKey=hansolPriceKey();
   const catOrder=['시그니처','스페셜','엔트리'];
   const catColor={'시그니처':'#1B3A5C','스페셜':'#7B5EA7','엔트리':'#2F7D4F'};
   const groups={};
@@ -2298,17 +2326,17 @@ function renderHansolPriceTable(){
     html+=`<div style="border:1.5px solid var(--bd);border-radius:10px;margin-bottom:10px;overflow:hidden;box-shadow:var(--sh)">
       <div onclick="toggleHansolPriceSection('${cat}');" style="background:${color};padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
         <div><span style="font-size:13px;font-weight:800;color:white">${cat}</span><span style="font-size:11px;color:rgba(255,255,255,.7);margin-left:8px">${items.length}종</span></div>
-        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:11px;color:rgba(255,255,255,.85)"><b>${items[0].price.toLocaleString()}</b>원</span><span style="color:white;font-size:13px;font-weight:700">${isOpen?'▲':'▼'}</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:11px;color:rgba(255,255,255,.85)"><b>${items[0][hansolKey].toLocaleString()}</b>원</span><span style="color:white;font-size:13px;font-weight:700">${isOpen?'▲':'▼'}</span></div>
       </div>
       ${isOpen?`<div>${items.map((p,i)=>`
         <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 14px;background:${i%2===0?'white':'var(--cr)'};border-bottom:1px solid #EDE8E0">
           <span style="font-size:13px;color:var(--g9);font-weight:500">${p.name}</span>
-          <span style="font-size:14px;font-weight:800;color:${color};white-space:nowrap;margin-left:8px">${p.price.toLocaleString()}<span style="font-size:10px;font-weight:400;color:var(--g5)">원</span></span>
+          <span style="font-size:14px;font-weight:800;color:${color};white-space:nowrap;margin-left:8px">${p[hansolKey].toLocaleString()}<span style="font-size:10px;font-weight:400;color:var(--g5)">원</span></span>
         </div>`).join('')}</div>`:''}
     </div>`;
   });
   html+=`<div style="padding:9px 12px;background:#EEF8EE;border-radius:8px;border:1.5px solid #A8D4A8;margin-top:4px">
-    <div style="font-size:11px;color:#2A6A2A;line-height:1.8">✅ <b>모든 단가는 부가세(VAT) 포함</b> 가격입니다 · 단일가(등급 구분 없음)<br>📐 제로조인트 기준 · 한솔 생산도어 · 2026.06.18~</div>
+    <div style="font-size:11px;color:#2A6A2A;line-height:1.8">✅ <b>모든 단가는 부가세(VAT) 포함</b> 가격입니다 · ${HANSOL_GRADE_LABEL[hansolKey]}<br>📐 제로조인트 기준 · 한솔 생산도어 · 2026.06.18~</div>
   </div>`;
   el.innerHTML=html;
 }
