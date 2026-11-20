@@ -1989,7 +1989,7 @@ function showHansolShareView(){
   const catOrder=['시그니처','스페셜','엔트리'];
   const catColor={'시그니처':'#1B3A5C','스페셜':'#7B5EA7','엔트리':'#2F7D4F'};
   const groups={};
-  HANSOL_DOOR_PRICES.forEach(p=>{
+  hansolVisibleFor(hansolKey).forEach(p=>{
     const cat=p.cat||'기타';
     if(!groups[cat])groups[cat]=[];
     groups[cat].push(p);
@@ -2287,35 +2287,95 @@ function renderPriceTable(){
   </div>`;
   el.innerHTML=html;
 }
+// ===== 한솔 Y단가 공개 품목 =====
+// 공유값 'hansol_y_hidden' = Y단가 단가표에서 닫아 둔 품목 이름 목록 (모든 직원 공통, 관리자만 편집)
+const HANSOL_Y_HIDDEN_KEY='hansol_y_hidden';
+let hansolYEdit=null; // 편집 중이면 닫을 품목 이름의 Set
+function hansolYHidden(){const v=(KM.state&&KM.state.kv||{})[HANSOL_Y_HIDDEN_KEY];return new Set(Array.isArray(v)?v:[]);}
+function hansolVisibleFor(key){
+  if(key!=='y')return HANSOL_DOOR_PRICES.slice();
+  const hid=hansolYHidden();
+  return HANSOL_DOOR_PRICES.filter(p=>!hid.has(p.name));
+}
+function startHansolYEdit(){
+  if(!mgIsAdmin()){kmToast('공개 품목은 관리자만 바꿀 수 있습니다.',true);return}
+  hansolYEdit=hansolYHidden();renderPriceTable();
+}
+function cancelHansolYEdit(){hansolYEdit=null;renderPriceTable();}
+function toggleHansolYItem(name){
+  if(!hansolYEdit)return;
+  hansolYEdit.has(name)?hansolYEdit.delete(name):hansolYEdit.add(name);renderPriceTable();
+}
+function setHansolYCat(cat,open){
+  if(!hansolYEdit)return;
+  HANSOL_DOOR_PRICES.filter(p=>p.cat===cat).forEach(p=>open?hansolYEdit.delete(p.name):hansolYEdit.add(p.name));
+  renderPriceTable();
+}
+async function saveHansolYEdit(){
+  if(!hansolYEdit)return;
+  const names=new Set(HANSOL_DOOR_PRICES.map(p=>p.name));
+  const list=[...hansolYEdit].filter(n=>names.has(n));
+  if(list.length===names.size){alert('최소 한 품목은 공개해야 합니다.');return}
+  hansolYEdit=null;
+  const req=kmSetKV(HANSOL_Y_HIDDEN_KEY,list); // 화면용 값은 바로 바뀜
+  renderPriceTable();
+  const ok=await req;
+  if(ok)kmToast('Y단가 공개 품목을 저장했습니다.');
+}
 function renderHansolPriceTable(){
   const el=document.getElementById('price-table-content');if(!el)return;
   const q=(document.getElementById('price-search')?.value||'').toLowerCase();
   const hasSearch=q.length>0;
   const hansolKey=priceTabGrade;
+  if(hansolKey!=='y')hansolYEdit=null;
+  const editing=!!hansolYEdit;
   const catOrder=['시그니처','스페셜','엔트리'];
   const catColor={'시그니처':'#1B3A5C','스페셜':'#7B5EA7','엔트리':'#2F7D4F'};
+  const source=editing?HANSOL_DOOR_PRICES:hansolVisibleFor(hansolKey);
   const groups={};
-  HANSOL_DOOR_PRICES.forEach(p=>{
+  source.forEach(p=>{
     if(q&&!p.name.toLowerCase().includes(q))return;
     const cat=p.cat||'기타';
     if(!groups[cat])groups[cat]=[];
     groups[cat].push(p);
   });
-  if(!Object.keys(groups).length){el.innerHTML='<div style="text-align:center;padding:24px;color:var(--g5)">검색 결과 없음</div>';return;}
   let html='';
+  if(hansolKey==='y'){
+    const total=HANSOL_DOOR_PRICES.length;
+    const openN=editing?total-[...hansolYEdit].filter(n=>HANSOL_DOOR_PRICES.some(p=>p.name===n)).length:hansolVisibleFor('y').length;
+    html+=`<div style="padding:10px 12px;background:${editing?'#FFF6E8':'#F1F5F9'};border:1.5px solid ${editing?'#F2C58A':'var(--bd)'};border-radius:10px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div style="font-size:12px;color:var(--g9);line-height:1.6"><b>Y단가 공개 품목 ${openN} / ${total}</b><br><span style="color:var(--g5);font-size:11px">${editing?'눌러서 공개·닫기를 바꾸고 저장하세요':'닫아 둔 품목은 단가표와 공유 이미지에 나오지 않아요'}</span></div>
+        ${editing?`<div style="display:flex;gap:6px;flex-shrink:0">
+            <button onclick="cancelHansolYEdit()" style="padding:7px 10px;border:1.5px solid var(--bd);border-radius:8px;background:white;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;color:var(--g5)">취소</button>
+            <button onclick="saveHansolYEdit()" style="padding:7px 12px;border:none;border-radius:8px;background:var(--or);font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;color:white">저장</button>
+          </div>`
+          :(mgIsAdmin()?`<button onclick="startHansolYEdit()" style="flex-shrink:0;padding:7px 10px;border:1.5px solid var(--br);border-radius:8px;background:white;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;color:var(--br)">공개 품목 편집</button>`:'')}
+      </div>
+    </div>`;
+  }
+  if(!Object.keys(groups).length){el.innerHTML=html+'<div style="text-align:center;padding:24px;color:var(--g5)">'+(hasSearch?'검색 결과 없음':'공개된 품목이 없습니다')+'</div>';return;}
   catOrder.filter(c=>groups[c]).forEach(cat=>{
     const items=groups[cat],color=catColor[cat]||'#1B3A5C';
-    const isOpen=hasSearch||(hansolPriceSectionOpen[cat]===true);
+    const isOpen=editing||hasSearch||(hansolPriceSectionOpen[cat]===true);
+    const catOpenN=editing?items.filter(p=>!hansolYEdit.has(p.name)).length:items.length;
     html+=`<div style="border:1.5px solid var(--bd);border-radius:10px;margin-bottom:10px;overflow:hidden;box-shadow:var(--sh)">
-      <div onclick="toggleHansolPriceSection('${cat}');" style="background:${color};padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
-        <div><span style="font-size:13px;font-weight:800;color:white">${cat}</span><span style="font-size:11px;color:rgba(255,255,255,.7);margin-left:8px">${items.length}종</span></div>
-        <div style="display:flex;align-items:center;gap:10px"><span style="font-size:11px;color:rgba(255,255,255,.85)"><b>${items[0][hansolKey].toLocaleString()}</b>원</span><span style="color:white;font-size:13px;font-weight:700">${isOpen?'▲':'▼'}</span></div>
+      <div onclick="${editing?'':`toggleHansolPriceSection('${cat}');`}" style="background:${color};padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:${editing?'default':'pointer'};">
+        <div><span style="font-size:13px;font-weight:800;color:white">${cat}</span><span style="font-size:11px;color:rgba(255,255,255,.7);margin-left:8px">${editing?`${catOpenN}/${items.length} 공개`:`${items.length}종`}</span></div>
+        ${editing?`<div style="display:flex;gap:6px">
+            <button onclick="setHansolYCat('${cat}',true)" style="padding:4px 8px;border:1px solid rgba(255,255,255,.5);border-radius:6px;background:rgba(255,255,255,.15);color:white;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer">모두 공개</button>
+            <button onclick="setHansolYCat('${cat}',false)" style="padding:4px 8px;border:1px solid rgba(255,255,255,.5);border-radius:6px;background:rgba(255,255,255,.15);color:white;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer">모두 닫기</button>
+          </div>`
+          :`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:11px;color:rgba(255,255,255,.85)"><b>${items[0][hansolKey].toLocaleString()}</b>원</span><span style="color:white;font-size:13px;font-weight:700">${isOpen?'▲':'▼'}</span></div>`}
       </div>
-      ${isOpen?`<div>${items.map((p,i)=>`
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 14px;background:${i%2===0?'white':'var(--cr)'};border-bottom:1px solid #EDE8E0">
-          <span style="font-size:13px;color:var(--g9);font-weight:500">${p.name}</span>
-          <span style="font-size:14px;font-weight:800;color:${color};white-space:nowrap;margin-left:8px">${p[hansolKey].toLocaleString()}<span style="font-size:10px;font-weight:400;color:var(--g5)">원</span></span>
-        </div>`).join('')}</div>`:''}
+      ${isOpen?`<div>${items.map((p,i)=>{
+        const hidden=editing&&hansolYEdit.has(p.name);
+        const nm=p.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        return `<div ${editing?`onclick="toggleHansolYItem('${nm}')"`:''} style="display:flex;justify-content:space-between;align-items:center;padding:7px 14px;background:${hidden?'#F3F4F6':(i%2===0?'white':'var(--cr)')};border-bottom:1px solid #EDE8E0;${editing?'cursor:pointer;':''}">
+          <span style="font-size:13px;color:${hidden?'#9CA3AF':'var(--g9)'};font-weight:500;${hidden?'text-decoration:line-through;':''}">${editing?`<span style="display:inline-block;width:18px;font-weight:800;color:${hidden?'#9CA3AF':'#2F7D4F'}">${hidden?'○':'✓'}</span>`:''}${p.name}</span>
+          ${editing?`<span style="font-size:11px;font-weight:700;color:${hidden?'#9CA3AF':'#2F7D4F'}">${hidden?'닫힘':'공개'}</span>`
+            :`<span style="font-size:14px;font-weight:800;color:${color};white-space:nowrap;margin-left:8px">${p[hansolKey].toLocaleString()}<span style="font-size:10px;font-weight:400;color:var(--g5)">원</span></span>`}
+        </div>`;}).join('')}</div>`:''}
     </div>`;
   });
   html+=`<div style="padding:9px 12px;background:#EEF8EE;border-radius:8px;border:1.5px solid #A8D4A8;margin-top:4px">
@@ -3096,6 +3156,7 @@ function kmRefreshUI(){
   try{if(KM.tab==='stock')renderStock()}catch(e){}
   try{if(KM.tab==='data')renderData()}catch(e){}
   try{if(KM.tab==='home')kmRenderHome()}catch(e){}
+  try{if(KM.tab==='price'&&!hansolYEdit)renderPriceTable()}catch(e){}
 }
 
 async function kmLoad(){
