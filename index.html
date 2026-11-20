@@ -207,7 +207,7 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
 .type-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;margin-right:4px;}
 .tb-film{background:#E8F0FE;color:#1A4FA0;}
 .tb-door{background:#FEE8E0;color:#C04010;}
-#grade-btn-std,#grade-btn-y{display:flex;align-items:center;justify-content:center;padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;transition:all .15s;}
+#grade-btn-std-legacy{display:flex;align-items:center;justify-content:center;padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;transition:all .15s;}
 
 /* ===== 키친매니저 추가 ===== */
 [hidden]{display:none!important;}
@@ -566,6 +566,73 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
 .mg-rep .box table{font-size:11px;}
 .mg-rep .note{font-size:10.5px;color:#8B95A1;margin-top:10px;}
 #km-print{display:none;}
+/* ---------- PC: 넓은 화면에서는 조금 더 넓게 ---------- */
+@media (min-width:900px){
+  body,#bnav,.container{max-width:720px}
+  .container{padding-left:24px;padding-right:24px}
+}
+/* ---------- 생산도어 품목 카드 ---------- */
+.dg{background:#fff;border:1px solid var(--km-line);border-radius:16px;margin-bottom:10px;overflow:hidden}
+.dg-head{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer}
+.dg-no{width:24px;height:24px;border-radius:50%;background:var(--km-press);color:var(--km-sub);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dg-name{font-size:16px;font-weight:700;color:var(--km-text)}
+.dg-sub{font-size:13px;color:var(--km-muted);margin-top:2px}
+.dg-amt{margin-left:auto;font-size:16px;font-weight:800;color:var(--km-text);white-space:nowrap;font-variant-numeric:tabular-nums}
+.dg-body{padding:4px 16px 16px;border-top:1px solid var(--km-line)}
+.dg-lbl{font-size:13px;font-weight:600;color:var(--km-sub);margin:14px 0 8px}
+.dg-sel{width:100%;height:50px;padding:0 12px;border:1px solid var(--km-line);border-radius:12px;background:var(--km-field);font-size:16px;color:var(--km-text);font-family:inherit;margin-top:8px}
+.dg-qty{width:100%;height:50px;border:1px solid var(--km-line);border-radius:12px;background:var(--km-field);font-size:20px;font-weight:700;text-align:center;color:var(--km-text);font-family:inherit}
+.dg-chips{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
+.dg-chips button{height:38px;border:none;border-radius:10px;background:var(--km-press);color:var(--km-sub);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.dg-chips button.on{background:var(--br);color:#fff}
+.dg-del{width:100%;height:44px;margin-top:14px;border:none;border-radius:12px;background:#FDECEA;color:#D92D20;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.seg.sm button{height:36px;font-size:14px}
+/* ---------- 단가표 (공통, 단순화) ---------- */
+.seg{display:flex;background:#E8EBEE;border-radius:12px;padding:3px;gap:2px;flex:1;min-width:0}
+.seg button{flex:1;height:38px;border:none;border-radius:9px;background:transparent;color:var(--km-sub);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+.seg button.on{background:#fff;color:var(--km-text);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.pt-ctrl{display:flex;gap:8px;margin-bottom:10px}
+.pt-search{position:relative;margin-bottom:12px}
+.pt-search input{width:100%;height:46px;padding:0 14px 0 40px;border:1px solid var(--km-line);border-radius:12px;background:#fff;font-size:15px;color:var(--km-text);outline:none}
+.pt-search input:focus{border-color:var(--br)}
+.pt-search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:18px;height:18px;stroke:var(--km-muted);fill:none;stroke-width:2;stroke-linecap:round}
+.pt-tools{display:flex;justify-content:flex-end;margin:-6px 0 6px}
+.pt-link{background:none;border:none;color:var(--km-sub);font-size:13px;font-weight:600;cursor:pointer;padding:6px 2px;font-family:inherit}
+.pt-sec{background:var(--km-surface);border-radius:16px;margin-bottom:10px;overflow:hidden}
+.pt-head{display:flex;align-items:center;gap:10px;padding:15px 16px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.pt-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pt-name{font-size:15px;font-weight:700;color:var(--km-text)}
+.pt-cnt{font-size:13px;color:var(--km-muted)}
+.pt-from{margin-left:auto;font-size:13px;color:var(--km-sub);white-space:nowrap;font-variant-numeric:tabular-nums}
+.pt-chev{width:18px;height:18px;stroke:var(--km-muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s;flex-shrink:0}
+.pt-sec.open .pt-chev{transform:rotate(180deg)}
+.pt-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 16px;border-top:1px solid var(--km-line)}
+.pt-row .n{font-size:14px;color:var(--km-text);word-break:keep-all}
+.pt-row .t{font-size:11px;color:var(--km-muted);margin-left:6px}
+.pt-row .p{font-size:15px;font-weight:700;color:var(--km-text);white-space:nowrap;font-variant-numeric:tabular-nums}
+.pt-row .p small{font-size:11px;font-weight:500;color:var(--km-muted);margin-left:2px}
+.pt-row.click{cursor:pointer}
+.pt-row.off .n,.pt-row.off .t{color:#B0B8C1;text-decoration:line-through}
+.pt-row .chk{display:inline-flex;width:20px;height:20px;border-radius:6px;align-items:center;justify-content:center;margin-right:8px;font-size:12px;font-weight:800;vertical-align:-4px;background:var(--br);color:#fff}
+.pt-row.off .chk{background:#E8EBEE;color:transparent}
+.pt-row .st{font-size:12px;font-weight:600;color:var(--km-sub)}
+.pt-row.off .st{color:#B0B8C1}
+.pt-sub{display:flex;justify-content:space-between;gap:8px;padding:8px 16px;background:var(--km-bg);border-top:1px solid var(--km-line);font-size:12px;font-weight:700;color:var(--km-sub)}
+.pt-sub span+span{font-weight:500;color:var(--km-muted)}
+.pt-mini{height:30px;padding:0 10px;border:none;border-radius:8px;background:var(--km-press);color:var(--km-sub);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+.pt-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;background:var(--km-surface);border-radius:14px;margin-bottom:10px}
+.pt-bar.edit{background:#FFF6E8}
+.pt-bar b{font-size:14px;color:var(--km-text)}
+.pt-bar .h{font-size:12px;color:var(--km-muted);margin-top:2px}
+.pt-note{font-size:12px;color:var(--km-muted);line-height:1.7;padding:4px 4px 0}
+.pt-note b{color:var(--km-sub);font-weight:600}
+.pt-empty{text-align:center;padding:28px;color:var(--km-muted);font-size:14px}
+.km-fold{background:var(--km-surface);border-radius:var(--km-r);margin-top:12px}
+.km-fold>summary{list-style:none;cursor:pointer;padding:16px 20px;font-size:14px;font-weight:600;color:var(--km-sub);display:flex;justify-content:space-between}
+.km-fold>summary::-webkit-details-marker{display:none}
+.km-fold>summary::after{content:'펼치기';font-weight:500;color:var(--km-muted)}
+.km-fold[open]>summary::after{content:'접기'}
+.km-fold .card{margin:0;background:none}
 @media print{
   @page{size:A4 landscape;margin:8mm;}
   html,body{background:#fff!important;max-width:none!important;width:auto!important;margin:0!important;padding:0!important;min-height:0!important;}
@@ -805,8 +872,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
     </div>
     <div class="total-bar"><span class="lbl">총 합계</span><span class="amt" id="total-amt">0 원</span></div>
     <div class="actions">
-      <button class="btn-rst" onclick="resetForm()">↺ 초기화</button>
-      <button class="btn-preview" onclick="showPreview()">🎨 견적서 보기 →</button>
+      <button class="btn-rst" onclick="resetForm()">초기화</button>
+      <button class="btn-preview" onclick="showPreview()">견적서 보기</button>
     </div>
   </div>
 </div>
@@ -846,11 +913,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
           <div class="field"><label>견적일</label><input id="door-date" type="date"></div>
         </div>
         <div class="field" style="margin-top:4px">
-          <label>적용 단가 <span style="font-size:9px;color:var(--g5);font-weight:400">(내부용 · 예림·한솔 공통)</span></label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <label id="grade-btn-std" onclick="setDoorGrade('std')" style="border:2px solid var(--br);background:var(--br);color:white;">표준단가</label>
-            <label id="grade-btn-y" onclick="setDoorGrade('y')" style="border:2px solid var(--bd);background:white;color:var(--g5);">Y단가</label>
-          </div>
+          <label>적용 단가 <span style="font-weight:400;color:var(--km-muted)">· 내부용</span></label>
+          <div class="seg"><button type="button" id="grade-btn-std" class="on" onclick="setDoorGrade('std')">표준단가</button><button type="button" id="grade-btn-y" onclick="setDoorGrade('y')">Y단가</button></div>
         </div>
       </div>
     </div>
@@ -863,8 +927,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
     </div>
     <div class="total-bar"><span class="lbl">총 합계</span><span class="amt" id="door-total">0 원</span></div>
     <div class="actions">
-      <button class="btn-rst" onclick="resetDoorForm()">↺ 초기화</button>
-      <button class="btn-pv" onclick="calcDoorQuote()">🚪 견적서 보기 →</button>
+      <button class="btn-rst" onclick="resetDoorForm()">초기화</button>
+      <button class="btn-pv" onclick="calcDoorQuote()">견적서 보기</button>
     </div>
   </div>
 </div>
@@ -886,19 +950,12 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
 <!-- 필름 단가표 탭 -->
 <div class="tp" id="tp-film-price">
   <div class="th"><div class="th-row">
-    <div class="th-av">🎨</div>
     <div><div class="th-ttl">필름 단가표</div><div class="th-sub">예림 인테리어필름 · 2026.06 기준</div></div>
+    <button class="th-btn" onclick="showFilmShareView()">공유</button>
   </div></div>
   <div class="container" style="padding-top:14px;padding-bottom:80px;">
-    <button onclick="showFilmShareView()" style="width:100%;padding:12px;margin-bottom:12px;background:linear-gradient(135deg,var(--or),#C85000);border:none;border-radius:10px;color:white;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 3px 12px rgba(232,99,10,.35);">📤 공유용 단가표 보기</button>
-    <div style="position:relative;margin-bottom:12px;">
-      <input type="text" id="fp-search" placeholder="색상명·품번 검색..." oninput="renderFilmPriceTable()" style="width:100%;padding:10px 14px 10px 36px;border:1.5px solid var(--bd);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:white;">
-      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:12px;">
-      <button onclick="toggleAllFilmSections(true)" style="flex:1;padding:8px;border:1.5px solid var(--bd);border-radius:8px;background:white;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;color:var(--br)">▼ 모두 펼치기</button>
-      <button onclick="toggleAllFilmSections(false)" style="flex:1;padding:8px;border:1.5px solid var(--bd);border-radius:8px;background:white;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;color:var(--g5)">▲ 모두 접기</button>
-    </div>
+    <div class="pt-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="text" id="fp-search" placeholder="색상명·품번 검색" oninput="renderFilmPriceTable()"></div>
+    <div class="pt-tools"><button class="pt-link" id="fp-allbtn" onclick="toggleAllFilmSections()">모두 펼치기</button></div>
     <div id="film-price-content"></div>
   </div>
 </div>
@@ -917,23 +974,15 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
 <!-- 도어 단가표 탭 -->
 <div class="tp" id="tp-price">
   <div class="th"><div class="th-row">
-    <div class="th-av">💰</div>
     <div><div class="th-ttl" id="price-tab-title">예림 생산도어 단가표</div><div class="th-sub" id="price-tab-sub">SUPER 레이저도어 · 2025.06.15 기준</div></div>
+    <button class="th-btn" onclick="showShareView()">공유</button>
   </div></div>
   <div class="container" style="padding-top:14px;padding-bottom:80px;">
-    <div style="display:flex;gap:6px;margin-bottom:10px;background:var(--cr-dk);border-radius:10px;padding:8px;">
-      <button id="pm-yerim" onclick="setPriceManufacturer('yerim')" style="flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:800;cursor:pointer;background:var(--or);color:white;font-family:inherit;">🎨 예림</button>
-      <button id="pm-hansol" onclick="setPriceManufacturer('hansol')" style="flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;background:white;color:var(--g5);font-family:inherit;">🚪 한솔</button>
+    <div class="pt-ctrl">
+      <div class="seg"><button id="pm-yerim" class="on" onclick="setPriceManufacturer('yerim')">예림</button><button id="pm-hansol" onclick="setPriceManufacturer('hansol')">한솔</button></div>
+      <div class="seg" id="grade-toggle-wrap"><button id="pt-g1" class="on" onclick="setPriceTab('std')">표준단가</button><button id="pt-g2" onclick="setPriceTab('y')">Y단가</button></div>
     </div>
-    <div id="grade-toggle-wrap" style="display:flex;gap:6px;margin-bottom:12px;background:var(--cr-dk);border-radius:10px;padding:8px;">
-      <button id="pt-g1" onclick="setPriceTab('std')" style="flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:800;cursor:pointer;background:var(--br);color:white;font-family:inherit;">표준단가</button>
-      <button id="pt-g2" onclick="setPriceTab('y')" style="flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;background:white;color:var(--g5);font-family:inherit;">Y단가</button>
-    </div>
-    <button onclick="showShareView()" style="width:100%;padding:12px;margin-bottom:12px;background:linear-gradient(135deg,var(--or),#C85000);border:none;border-radius:10px;color:white;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 3px 12px rgba(232,99,10,.35);">📤 공유용 단가표 보기</button>
-    <div style="position:relative;margin-bottom:12px;">
-      <input type="text" id="price-search" placeholder="색상명 검색..." oninput="filterPriceTable()" style="width:100%;padding:10px 14px 10px 36px;border:1.5px solid var(--bd);border-radius:10px;font-size:14px;font-family:inherit;outline:none;">
-      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;">🔍</span>
-    </div>
+    <div class="pt-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="text" id="price-search" placeholder="색상명 검색" oninput="filterPriceTable()"></div>
     <div id="price-table-content"></div>
   </div>
 </div>
@@ -955,7 +1004,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
     <div class="th-av">📊</div>
     <div><div class="th-ttl">데이터</div><div class="th-sub">재고 통계 · 견적 기록</div></div>
   </div></div>
-  <div class="container" style="padding-top:14px;padding-bottom:90px;"><div id="data-inner"></div><div id="data-bottom" style="margin-top:20px"></div><div id="data-top" style="margin-top:20px"></div><!-- 견적 기록은 덜 중요해서 맨 아래 --></div>
+  <div class="container" style="padding-top:14px;padding-bottom:90px;"><div id="data-inner"></div><div id="data-bottom"></div><div id="data-top" style="margin-top:20px"></div><!-- 견적 기록은 덜 중요해서 맨 아래 --></div>
 </div>
 
 <!-- 재고관리 탭 -->
@@ -1735,9 +1784,7 @@ const GRADE_LABEL={std:'표준단가',y:'Y단가'};
 function setDoorGrade(k){
   doorGrade=k;
   ['std','y'].forEach(n=>{
-    const b=document.getElementById(`grade-btn-${n}`);if(!b)return;
-    if(n===k){b.style.background='var(--br)';b.style.borderColor='var(--br)';b.style.color='white';b.style.fontWeight='800';}
-    else{b.style.background='white';b.style.borderColor='var(--bd)';b.style.color='var(--g5)';b.style.fontWeight='700';}
+    const b=document.getElementById(`grade-btn-${n}`);if(b)b.classList.toggle('on',n===k);
   });
   renderDoorGroups();
 }
@@ -1820,52 +1867,33 @@ function renderDoorGroups(){
     const colorOptions=brand==='hansol'
       ?HANSOL_DOOR_PRICES.map(p=>`<option value="${p.name}"${p.name===g.key?' selected':''}>${p.name} (${p.cat})</option>`).join('')
       :DOOR_PRICES.map(p=>`<option value="${p.name}|${p.type}"${(p.name+'|'+p.type)===g.key?' selected':''}>${p.name} (${p.type})</option>`).join('');
-    const rows=g.open?`
-      <div style="padding:10px 12px;background:#FAFAF8;border-top:1px solid var(--border)">
-        <div style="margin-bottom:12px">
-          <label style="font-size:10px;color:var(--gray-500);font-weight:700;text-transform:uppercase;display:block;margin-bottom:4px">제조사</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <button onclick="setDoorGroupBrand(${gi},'yerim')" style="padding:9px 4px;border-radius:8px;border:1.5px solid ${brand==='yerim'?'#1B3A5C':'var(--border)'};background:${brand==='yerim'?'#1B3A5C':'white'};color:${brand==='yerim'?'white':'var(--gray-700)'};font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">예림</button>
-            <button onclick="setDoorGroupBrand(${gi},'hansol')" style="padding:9px 4px;border-radius:8px;border:1.5px solid ${brand==='hansol'?'#1B3A5C':'var(--border)'};background:${brand==='hansol'?'#1B3A5C':'white'};color:${brand==='hansol'?'white':'var(--gray-700)'};font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">한솔</button>
-          </div>
-        </div>
-        <div style="margin-bottom:8px;position:relative;">
-          <label style="font-size:10px;color:var(--gray-500);font-weight:700;text-transform:uppercase;display:block;margin-bottom:4px">색상 검색</label>
-          <input type="text" class="model-search-input" placeholder="색상명 검색 (예: 프렌치오크)" autocomplete="off"
+    const brandLabel=brand==='hansol'?'한솔':'예림';
+    const body=g.open?`
+      <div class="dg-body">
+        <div class="dg-lbl">제조사</div>
+        <div class="seg sm"><button type="button" class="${brand==='yerim'?'on':''}" onclick="setDoorGroupBrand(${gi},'yerim')">예림</button><button type="button" class="${brand==='hansol'?'on':''}" onclick="setDoorGroupBrand(${gi},'hansol')">한솔</button></div>
+        <div class="dg-lbl">색상</div>
+        <div style="position:relative">
+          <input type="text" class="model-search-input" placeholder="색상명으로 찾기" autocomplete="off"
             oninput="onDoorColorSearch(${gi},this.value)"
             onfocus="onDoorColorSearch(${gi},this.value)"
             onblur="setTimeout(()=&gt;hideDoorColorResults(${gi}),150)">
           <div class="model-search-results" id="door-search-results-${gi}"></div>
         </div>
-        <div style="margin-bottom:12px">
-          <label style="font-size:10px;color:var(--gray-500);font-weight:700;text-transform:uppercase;display:block;margin-bottom:4px">색상 선택</label>
-          <select onchange="updateDoorGroup(${gi},'key',this.value)" style="width:100%;padding:8px 12px;border:1.5px solid #A8C4E8;border-radius:9px;font-size:14px;font-family:inherit;background:#EAF1FA;color:var(--blue);font-weight:700">
-            ${colorOptions}
-          </select>
-        </div>
-        <div>
-          <label style="font-size:10px;color:var(--gray-500);font-weight:700;text-transform:uppercase;display:block;margin-bottom:6px">수량 (장)</label>
-          <input type="number" step="0.1" min="0" value="${g.amount||0}" onchange="updateDoorGroup(${gi},'amount',parseFloat(this.value)||0)" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:15px;font-weight:800;text-align:center;font-family:inherit;margin-bottom:8px;color:#1B3A5C">
-          <div style="font-size:9px;color:var(--gray-500);margin-bottom:6px">소수점 빠른 선택 (0.1 단위)</div>
-          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px">
-            ${AMOUNTS.map(a=>`<button onclick="updateDoorGroup(${gi},'amount',${a})" style="padding:9px 4px;border-radius:8px;border:1.5px solid ${a===g.amount?'#1B3A5C':'var(--border)'};background:${a===g.amount?'#1B3A5C':'white'};color:${a===g.amount?'white':'var(--gray-700)'};font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">${a.toFixed(1)}</button>`).join('')}
-          </div>
-        </div>
-      </div>`:''
-    ;
-    return `<div style="border:1.5px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden">
-      <div onclick="toggleDoorGroup(${gi})" style="background:linear-gradient(135deg,#1B3A5C,#2E5A7D);padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer">
-        <div style="width:22px;height:22px;background:rgba(255,255,255,0.2);border:1.5px solid rgba(255,255,255,0.35);border-radius:50%;color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">${gi+1}</div>
-        <div style="flex:1">
-          <div style="font-size:14px;font-weight:700;color:white">${colorName} <span style="font-size:11px;opacity:0.75">(${brand==='hansol'?'한솔':'예림'}${colorType?' · '+colorType:''})</span></div>
-          <div style="font-size:11px;color:rgba(255,255,255,0.7);margin-top:2px">수량 ${(g.amount||0).toFixed(1)}장 · ${groupAmt.toLocaleString()}원</div>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <button onclick="event.stopPropagation();removeDoorGroup(${gi})" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:6px;color:white;cursor:pointer;font-size:12px;padding:3px 8px">삭제</button>
-          <span style="color:white;font-size:14px">${g.open?'▲':'▼'}</span>
-        </div>
+        <select class="dg-sel" onchange="updateDoorGroup(${gi},'key',this.value)">${colorOptions}</select>
+        <div class="dg-lbl">수량 (장)</div>
+        <input class="dg-qty" type="number" step="0.1" min="0" inputmode="decimal" value="${g.amount||0}" onchange="updateDoorGroup(${gi},'amount',parseFloat(this.value)||0)">
+        <div class="dg-chips">${AMOUNTS.map(a=>`<button type="button" class="${a===g.amount?'on':''}" onclick="updateDoorGroup(${gi},'amount',${a})">${a.toFixed(1)}</button>`).join('')}</div>
+        <button type="button" class="dg-del" onclick="removeDoorGroup(${gi})">삭제</button>
+      </div>`:'';
+    return `<div class="dg">
+      <div class="dg-head" onclick="toggleDoorGroup(${gi})">
+        <div class="dg-no">${gi+1}</div>
+        <div style="min-width:0"><div class="dg-name">${colorName}</div><div class="dg-sub">${brandLabel}${colorType?' · '+colorType:''} · ${(g.amount||0).toFixed(1)}장</div></div>
+        <div class="dg-amt">${groupAmt.toLocaleString()}원</div>
+        <svg class="pt-chev" style="${g.open?'transform:rotate(180deg)':''}" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
       </div>
-      ${rows}
+      ${body}
     </div>`;
   }).join('');
   updateDoorTotals();
@@ -2154,11 +2182,13 @@ const FILM_PRICE_SECTIONS=[
 ];
 let filmSectionOpen={};
 function toggleFilmSection(key){filmSectionOpen[key]=!filmSectionOpen[key];renderFilmPriceTable();}
-function toggleAllFilmSections(open){FILM_PRICE_SECTIONS.forEach(s=>filmSectionOpen[s.key]=open);renderFilmPriceTable();}
+function toggleAllFilmSections(open){if(open===undefined)open=!FILM_PRICE_SECTIONS.every(s=>filmSectionOpen[s.key]);FILM_PRICE_SECTIONS.forEach(s=>filmSectionOpen[s.key]=open);renderFilmPriceTable();}
 function renderFilmPriceTable(){
   const el=document.getElementById('film-price-content');if(!el)return;
   const q=(document.getElementById('fp-search')?.value||'').toLowerCase();
   const hasSearch=q.length>0;
+  const allBtn=document.getElementById('fp-allbtn');
+  if(allBtn)allBtn.textContent=FILM_PRICE_SECTIONS.every(s=>filmSectionOpen[s.key])?'모두 접기':'모두 펼치기';
   let html='';
   FILM_PRICE_SECTIONS.forEach(sec=>{
     const allItems=[];
@@ -2168,45 +2198,22 @@ function renderFilmPriceTable(){
     });
     if(!allItems.length)return;
     const isOpen=hasSearch||filmSectionOpen[sec.key];
-    html+=`
-      <div style="border:1.5px solid var(--bd);border-radius:10px;margin-bottom:10px;overflow:hidden;box-shadow:var(--sh)">
-        <div onclick="toggleFilmSection('${sec.key}')" style="background:${sec.color};padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;">
-          <div><span style="font-size:13px;font-weight:800;color:white">${sec.label}</span><span style="font-size:11px;color:rgba(255,255,255,.7);margin-left:8px">${allItems.length}종</span></div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span style="font-size:11px;color:rgba(255,255,255,.85)">롤&nbsp;<b>${allItems[0].roll.toLocaleString()}</b>원~</span>
-            <span style="color:white;font-size:13px;font-weight:700">${isOpen?'▲':'▼'}</span>
-          </div>
-        </div>
-        ${isOpen?`<div style="background:white">
-          ${sec.keys.map(k=>{
-            const db=MODEL_DB[k];if(!db)return'';
-            const filteredModels=db.models.filter(m=>!q||m.toLowerCase().includes(q)||db.name.includes(q));
-            if(!filteredModels.length)return'';
-            return`<div style="border-bottom:1px solid var(--bd)">
-              <div style="background:${sec.color}22;padding:5px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid ${sec.color}33">
-                <span style="font-size:11px;font-weight:800;color:${sec.color}">${db.name}</span>
-                <span style="font-size:10px;color:var(--g5)">롤 ${db.roll.toLocaleString()} · 절단 ${db.cut.toLocaleString()}</span>
-              </div>
-              ${filteredModels.map((m,i)=>`
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:${i%2===0?'white':'var(--cr)'};border-bottom:1px solid #EDE8E0">
-                  <span style="font-size:12.5px;color:var(--g9);font-weight:500">${m}</span>
-                  <div style="text-align:right;flex-shrink:0;margin-left:8px">
-                    <span style="font-size:12px;font-weight:700;color:${sec.color}">${db.roll.toLocaleString()}</span>
-                    <span style="font-size:10px;color:var(--g5)">/롤</span>
-                  </div>
-                </div>`).join('')}
-            </div>`;
-          }).join('')}
-        </div>`:''}
-      </div>`;
+    html+=`<div class="pt-sec${isOpen?' open':''}">
+      <div class="pt-head" onclick="toggleFilmSection('${sec.key}')">
+        <span class="pt-dot" style="background:${sec.color}"></span><span class="pt-name">${sec.label}</span><span class="pt-cnt">${allItems.length}종</span>
+        <span class="pt-from">롤 ${Math.min(...allItems.map(i=>i.roll)).toLocaleString()}원~</span><svg class="pt-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+      ${isOpen?sec.keys.map(k=>{
+        const db=MODEL_DB[k];if(!db)return'';
+        const models=db.models.filter(m=>!q||m.toLowerCase().includes(q)||db.name.includes(q));
+        if(!models.length)return'';
+        return `<div class="pt-sub"><span>${db.name}</span><span>롤 ${db.roll.toLocaleString()} · 절단 ${db.cut.toLocaleString()}</span></div>`+
+          models.map(m=>`<div class="pt-row"><span class="n">${m}</span><span class="p">${db.roll.toLocaleString()}<small>/롤</small></span></div>`).join('');
+      }).join(''):''}
+    </div>`;
   });
-  if(!html)html='<div style="text-align:center;padding:24px;color:var(--g5)">검색 결과가 없습니다</div>';
-  html+=`<div style="padding:10px 12px;background:#FEF6EE;border-radius:8px;border:1.5px solid #E8C8A0;margin-top:4px">
-    <div style="font-size:11px;color:#3D6E8F;line-height:1.8">📋 <b>롤단가</b>: 25m 단위 / <b>절단단가</b>: 25m 미만 절단 시<br>1롤=25m · VAT 포함 · 2026.06 기준</div>
-  </div>
-  <div style="padding:10px 12px;background:#FFF0E8;border-radius:8px;border:1.5px solid #E8A070;margin-top:6px">
-    <div style="font-size:11px;color:#C04010;line-height:1.8">🔥 <b>방염 처리 시 +3,900원/m</b> 추가 적용<br>견적서 작성 시 품목별 방염 토글로 자동 계산됩니다</div>
-  </div>`;
+  if(!html)html='<div class="pt-empty">검색 결과가 없습니다</div>';
+  html+=`<div class="pt-note"><b>롤단가</b> 25m 단위 · <b>절단단가</b> 25m 미만 · 1롤=25m · VAT 포함<br><b>방염 +3,900원/m</b> · 견적서에서 품목별 방염을 켜면 자동 계산</div>`;
   el.innerHTML=html;
 }
 
@@ -2218,14 +2225,10 @@ let hansolPriceSectionOpen={'시그니처':true,'스페셜':false,'엔트리':fa
 
 function setPriceManufacturer(m){
   priceManufacturer=m;
-  const s1='flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:800;cursor:pointer;background:var(--or);color:white;font-family:inherit;';
-  const s2='flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;background:white;color:var(--g5);font-family:inherit;';
-  document.getElementById('pm-yerim').style.cssText=m==='yerim'?s1:s2;
-  document.getElementById('pm-hansol').style.cssText=m==='hansol'?s1:s2;
-  const gradeWrap=document.getElementById('grade-toggle-wrap');
+  document.getElementById('pm-yerim').classList.toggle('on',m==='yerim');
+  document.getElementById('pm-hansol').classList.toggle('on',m==='hansol');
   const title=document.getElementById('price-tab-title'),sub=document.getElementById('price-tab-sub');
   const shareTitle=document.getElementById('share-modal-title');
-  gradeWrap.style.display='flex';
   if(m==='yerim'){
     title.textContent='예림 생산도어 단가표';
     sub.textContent='SUPER 레이저도어 · 2025.06.15 기준';
@@ -2240,10 +2243,8 @@ function setPriceManufacturer(m){
 }
 function setPriceTab(g){
   priceTabGrade=g;
-  const s1='flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;cursor:pointer;background:var(--br);color:white;font-family:inherit;font-weight:800;';
-  const s2='flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;cursor:pointer;background:white;color:var(--g5);font-family:inherit;font-weight:700;';
-  document.getElementById('pt-g1').style.cssText=g==='std'?s1:s2;
-  document.getElementById('pt-g2').style.cssText=g==='y'?s1:s2;
+  document.getElementById('pt-g1').classList.toggle('on',g==='std');
+  document.getElementById('pt-g2').classList.toggle('on',g==='y');
   renderPriceTable();
 }
 function filterPriceTable(){renderPriceTable();}
@@ -2326,53 +2327,39 @@ function renderPriceTable(){
   source.forEach(p=>{
     if(q&&!p.name.toLowerCase().includes(q)&&!(B.showType&&(p.type||'').toLowerCase().includes(q)))return;
     const cat=p.cat||'기타';
-    if(!groups[cat])groups[cat]=[];
-    groups[cat].push(p);
+    (groups[cat]=groups[cat]||[]).push(p);
   });
   let html='';
   if(key==='y'){
-    const total=all.length;
     const openN=editing?all.filter(p=>!yEdit.hid.has(B.id(p))).length:source.length;
-    html+=`<div style="padding:10px 12px;background:${editing?'#FFF6E8':'#F1F5F9'};border:1.5px solid ${editing?'#F2C58A':'var(--bd)'};border-radius:10px;margin-bottom:10px">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-        <div style="font-size:12px;color:var(--g9);line-height:1.6"><b>Y단가 공개 품목 ${openN} / ${total}</b><br><span style="color:var(--g5);font-size:11px">${editing?'눌러서 공개·닫기를 바꾸고 저장하세요':'닫아 둔 품목은 단가표와 공유 이미지에 나오지 않아요'}</span></div>
-        ${editing?`<div style="display:flex;gap:6px;flex-shrink:0">
-            <button onclick="cancelYEdit()" style="padding:7px 10px;border:1.5px solid var(--bd);border-radius:8px;background:white;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;color:var(--g5)">취소</button>
-            <button onclick="saveYEdit()" style="padding:7px 12px;border:none;border-radius:8px;background:var(--or);font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;color:white">저장</button>
-          </div>`
-          :(mgIsAdmin()?`<button onclick="startYEdit()" style="flex-shrink:0;padding:7px 10px;border:1.5px solid var(--br);border-radius:8px;background:white;font-size:12px;font-weight:800;font-family:inherit;cursor:pointer;color:var(--br)">공개 품목 편집</button>`:'')}
-      </div>
+    html+=`<div class="pt-bar${editing?' edit':''}">
+      <div><b>Y단가 공개 품목 ${openN} / ${all.length}</b><div class="h">${editing?'눌러서 공개·닫기를 바꾸고 저장하세요':'닫아 둔 품목은 단가표와 공유 이미지에 나오지 않아요'}</div></div>
+      ${editing?`<div style="display:flex;gap:6px;flex-shrink:0"><button class="pt-mini" onclick="cancelYEdit()">취소</button><button class="pt-mini" style="background:var(--br);color:#fff" onclick="saveYEdit()">저장</button></div>`
+        :(mgIsAdmin()?`<button class="pt-mini" onclick="startYEdit()">공개 품목 편집</button>`:'')}
     </div>`;
   }
-  if(!Object.keys(groups).length){el.innerHTML=html+'<div style="text-align:center;padding:24px;color:var(--g5)">'+(hasSearch?'검색 결과 없음':'공개된 품목이 없습니다')+'</div>';return;}
-  const btn='padding:4px 8px;border:1px solid rgba(255,255,255,.5);border-radius:6px;background:rgba(255,255,255,.15);color:white;font-size:11px;font-weight:700;font-family:inherit;cursor:pointer';
+  if(!Object.keys(groups).length){el.innerHTML=html+`<div class="pt-empty">${hasSearch?'검색 결과 없음':'공개된 품목이 없습니다'}</div>`;return;}
   B.catOrder.forEach((cat,ci)=>{
     const items=groups[cat];if(!items)return;
     const color=B.catColor[cat]||'#1B3A5C',label=B.catLabel[cat]||cat;
     const isOpen=editing||hasSearch||(B.sectionOpen()[cat]===true);
     const catOpenN=editing?items.filter(p=>!yEdit.hid.has(B.id(p))).length:items.length;
-    html+=`<div style="border:1.5px solid var(--bd);border-radius:10px;margin-bottom:10px;overflow:hidden;box-shadow:var(--sh)">
-      <div onclick="${editing?'':`${B.toggleFn}(PRICE_BRANDS.${brand}.catOrder[${ci}])`}" style="background:${color};padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:${editing?'default':'pointer'};">
-        <div><span style="font-size:13px;font-weight:800;color:white">${label}</span><span style="font-size:11px;color:rgba(255,255,255,.7);margin-left:8px">${editing?`${catOpenN}/${items.length} 공개`:`${items.length}종`}</span></div>
-        ${editing?`<div style="display:flex;gap:6px;flex-shrink:0">
-            <button onclick="setYCat(${ci},true)" style="${btn}">모두 공개</button>
-            <button onclick="setYCat(${ci},false)" style="${btn}">모두 닫기</button>
-          </div>`
-          :`<div style="display:flex;align-items:center;gap:10px"><span style="font-size:11px;color:rgba(255,255,255,.85)"><b>${Math.min(...items.map(p=>p[key])).toLocaleString()}</b>${B.fromSuffix}</span><span style="color:white;font-size:13px;font-weight:700">${isOpen?'▲':'▼'}</span></div>`}
+    html+=`<div class="pt-sec${isOpen?' open':''}">
+      <div class="pt-head" ${editing?'':`onclick="${B.toggleFn}(PRICE_BRANDS.${brand}.catOrder[${ci}])"`}>
+        <span class="pt-dot" style="background:${color}"></span><span class="pt-name">${label}</span><span class="pt-cnt">${editing?`${catOpenN}/${items.length} 공개`:`${items.length}종`}</span>
+        ${editing?`<span style="margin-left:auto;display:flex;gap:6px"><button class="pt-mini" onclick="setYCat(${ci},true)">모두 공개</button><button class="pt-mini" onclick="setYCat(${ci},false)">모두 닫기</button></span>`
+          :`<span class="pt-from">${Math.min(...items.map(p=>p[key])).toLocaleString()}${B.fromSuffix}</span><svg class="pt-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`}
       </div>
-      ${isOpen?`<div>${items.map((p,i)=>{
-        const hidden=editing&&yEdit.hid.has(B.id(p));
-        const typeTag=B.showType&&p.type&&p.type!=='일반'?`<span style="font-size:10px;color:var(--g5);margin-left:5px">[${p.type}]</span>`:'';
-        return `<div ${editing?`onclick="toggleYItem(${all.indexOf(p)})"`:''} style="display:flex;justify-content:space-between;align-items:center;padding:7px 14px;background:${hidden?'#F3F4F6':(i%2===0?'white':'var(--cr)')};border-bottom:1px solid #EDE8E0;${editing?'cursor:pointer;':''}">
-          <div style="${hidden?'opacity:.5;text-decoration:line-through;':''}">${editing?`<span style="display:inline-block;width:18px;font-weight:800;color:${hidden?'#9CA3AF':'#2F7D4F'}">${hidden?'○':'✓'}</span>`:''}<span style="font-size:13px;color:var(--g9);font-weight:500">${p.name}</span>${typeTag}</div>
-          ${editing?`<span style="font-size:11px;font-weight:700;color:${hidden?'#9CA3AF':'#2F7D4F'};white-space:nowrap;margin-left:8px">${hidden?'닫힘':'공개'}</span>`
-            :`<span style="font-size:14px;font-weight:800;color:${color};white-space:nowrap;margin-left:8px">${p[key].toLocaleString()}<span style="font-size:10px;font-weight:400;color:var(--g5)">원</span></span>`}
-        </div>`;}).join('')}</div>`:''}
+      ${isOpen?items.map(p=>{
+        const off=editing&&yEdit.hid.has(B.id(p));
+        const typeTag=B.showType&&p.type&&p.type!=='일반'?`<span class="t">${p.type}</span>`:'';
+        return `<div class="pt-row${editing?' click':''}${off?' off':''}" ${editing?`onclick="toggleYItem(${all.indexOf(p)})"`:''}>
+          <div>${editing?'<span class="chk">✓</span>':''}<span class="n">${p.name}</span>${typeTag}</div>
+          ${editing?`<span class="st">${off?'닫힘':'공개'}</span>`:`<span class="p">${p[key].toLocaleString()}<small>원</small></span>`}
+        </div>`;}).join(''):''}
     </div>`;
   });
-  html+=`<div style="padding:9px 12px;background:#EEF8EE;border-radius:8px;border:1.5px solid #A8D4A8;margin-top:4px">
-    <div style="font-size:11px;color:#2A6A2A;line-height:1.8">✅ <b>모든 단가는 부가세(VAT) 포함</b> 가격입니다 · ${GRADE_LABEL[key]}<br>${B.footer}</div>
-  </div>`;
+  html+=`<div class="pt-note"><b>VAT 포함</b> · ${GRADE_LABEL[key]} · ${B.footer.replace(/^📐\s*/,'')}</div>`;
   el.innerHTML=html;
 }
 
@@ -2462,7 +2449,7 @@ function renderStockData(){
     </div>
 
     <!-- 출고 랭킹 -->
-    <div style="font-size:13px;font-weight:800;color:var(--g7);margin-bottom:8px;">🔥 출고 많은 색상 TOP8</div>
+    <div style="font-size:15px;font-weight:700;color:var(--km-text);margin:6px 2px 10px;">출고 많은 색상 TOP 8</div>
     <div class="stat-card" style="margin-bottom:14px;padding:12px 14px;">
       ${outRanking.length===0?'<div style="text-align:center;color:var(--g5);font-size:13px;padding:12px;">출고 이력이 없습니다</div>':
         outRanking.map(([name,d],i)=>`
@@ -2482,7 +2469,7 @@ function renderStockData(){
     </div>
 
     <!-- 보유량 랭킹 -->
-    <div style="font-size:13px;font-weight:800;color:var(--g7);margin-bottom:8px;">📦 보유량 많은 색상 TOP8</div>
+    <div style="font-size:15px;font-weight:700;color:var(--km-text);margin:6px 2px 10px;">보유량 많은 색상 TOP 8</div>
     <div class="stat-card" style="margin-bottom:14px;padding:12px 14px;">
       ${highRanking.length===0?'<div style="text-align:center;color:var(--g5);font-size:13px;padding:12px;">재고 없음</div>':
         highRanking.map((s,i)=>`
@@ -2499,7 +2486,7 @@ function renderStockData(){
     </div>
 
     <!-- 잔여 재고 현황 -->
-    <div style="font-size:13px;font-weight:800;color:var(--g7);margin-bottom:8px;">📉 잔여 재고 적은 순</div>
+    <div style="font-size:15px;font-weight:700;color:var(--km-text);margin:6px 2px 10px;">남은 재고 적은 순</div>
     <div class="stat-card" style="margin-bottom:14px;padding:12px 14px;">
       ${lowRanking.length===0?'<div style="text-align:center;color:var(--g5);font-size:13px;padding:12px;">재고 없음</div>':
         lowRanking.map((s,i)=>{
@@ -2534,7 +2521,7 @@ function renderStockData(){
     </div>`:''}
 
     <!-- 최근 입출고 이력 -->
-    <div style="font-size:13px;font-weight:800;color:var(--g7);margin-bottom:8px;">📋 최근 입출고 이력</div>
+    <div style="font-size:15px;font-weight:700;color:var(--km-text);margin:6px 2px 10px;">최근 입출고</div>
     <div class="stat-card" style="margin-bottom:14px;padding:12px 14px;">
       ${recentLog.length===0?'<div style="text-align:center;color:var(--g5);font-size:13px;padding:12px;">이력 없음</div>':
         recentLog.map((l,i)=>`
@@ -3657,13 +3644,13 @@ function kmRenderDataTop(){
   '</div></div>'+
   '';
   const bot=document.getElementById('data-bottom');if(bot)bot.innerHTML=
-  '<div class="card"><div class="card-header"><div class="icon">📥</div><h2>기존 데이터 가져오기</h2></div><div class="card-body">'+
+  '<details class="km-fold"'+(kmImpLast.t?' open':'')+'><summary>예전 앱 데이터 가져오기 (처음 한 번만)</summary><div class="card"><div class="card-body" style="padding-top:0">'+
     '<div class="km-hint" style="margin-bottom:6px">예전 척척박사와 마진계산기에 있던 데이터를 공용 저장소로 옮깁니다. 이미 있는 항목은 건너뛰므로 여러 번 눌러도 중복되지 않습니다.</div>'+
     '<div class="km-import"><div><div class="n">척척박사 재고·재고 이력</div><div class="h">척척박사 서버에 있던 공용 재고 (한 명만 하면 됩니다)</div></div><button class="km-btn" id="km-imp-fb" onclick="kmImportFirebase()">가져오기</button></div>'+
     '<div class="km-import"><div><div class="n">이 기기의 척척박사 거래처·견적 기록</div><div class="h">거래처 '+lc.clients+'곳 · 견적 '+lc.sales+'건 (기기마다 따로 있던 내용)</div></div><button class="km-btn" id="km-imp-local" onclick="kmImportLocal()" '+(lc.clients+lc.sales?'':'disabled')+'>가져오기</button></div>'+
     '<div class="km-import"><div><div class="n">이 기기의 마진계산기 현장</div><div class="h">이 기기에만 저장된 현장 '+lc.projects+'건</div></div><button class="km-btn" id="km-imp-mg" onclick="kmImportMargin()" '+(lc.projects?'':'disabled')+'>가져오기</button></div>'+
     '<div class="km-msg'+(kmImpLast.err?' err':'')+'" id="km-impmsg" style="margin:8px 0 0" role="status">'+kmEsc(kmImpLast.t)+'</div>'+
-  '</div></div>';
+  '</div></div></details>';
 }
 function kmSyncText(){
   return KM.lastSync?kmTime(KM.lastSync)+'에 최신 내용을 불러옴 · 1분마다 자동 갱신':'공용 저장소에 연결하는 중…';
