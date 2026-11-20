@@ -207,7 +207,7 @@ body{font-family:var(--fn);background:var(--cr);color:var(--g9);min-height:100vh
 .type-badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:700;margin-right:4px;}
 .tb-film{background:#E8F0FE;color:#1A4FA0;}
 .tb-door{background:#FEE8E0;color:#C04010;}
-#grade-btn-1,#grade-btn-2,#hansol-grade-btn-std,#hansol-grade-btn-y{display:flex;align-items:center;justify-content:center;padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;transition:all .15s;}
+#grade-btn-std,#grade-btn-y{display:flex;align-items:center;justify-content:center;padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:14px;transition:all .15s;}
 
 /* ===== 키친매니저 추가 ===== */
 [hidden]{display:none!important;}
@@ -846,17 +846,10 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
           <div class="field"><label>견적일</label><input id="door-date" type="date"></div>
         </div>
         <div class="field" style="margin-top:4px">
-          <label>적용 등급 <span style="font-size:9px;color:var(--g5);font-weight:400">(내부용)</span></label>
+          <label>적용 단가 <span style="font-size:9px;color:var(--g5);font-weight:400">(내부용 · 예림·한솔 공통)</span></label>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <label id="grade-btn-1" onclick="setDoorGrade(1)" style="border:2px solid var(--br);background:var(--br);color:white;">A등급</label>
-            <label id="grade-btn-2" onclick="setDoorGrade(2)" style="border:2px solid var(--bd);background:white;color:var(--g5);">B등급</label>
-          </div>
-        </div>
-        <div class="field" style="margin-top:4px">
-          <label>한솔 적용 단가 <span style="font-size:9px;color:var(--g5);font-weight:400">(내부용)</span></label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <label id="hansol-grade-btn-std" onclick="setHansolDoorGrade('std')" style="border:2px solid var(--br);background:var(--br);color:white;">표준단가</label>
-            <label id="hansol-grade-btn-y" onclick="setHansolDoorGrade('y')" style="border:2px solid var(--bd);background:white;color:var(--g5);">Y단가</label>
+            <label id="grade-btn-std" onclick="setDoorGrade('std')" style="border:2px solid var(--br);background:var(--br);color:white;">표준단가</label>
+            <label id="grade-btn-y" onclick="setDoorGrade('y')" style="border:2px solid var(--bd);background:white;color:var(--g5);">Y단가</label>
           </div>
         </div>
       </div>
@@ -933,8 +926,8 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
       <button id="pm-hansol" onclick="setPriceManufacturer('hansol')" style="flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;background:white;color:var(--g5);font-family:inherit;">🚪 한솔</button>
     </div>
     <div id="grade-toggle-wrap" style="display:flex;gap:6px;margin-bottom:12px;background:var(--cr-dk);border-radius:10px;padding:8px;">
-      <button id="pt-g1" onclick="setPriceTab(1)" style="flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:800;cursor:pointer;background:var(--br);color:white;font-family:inherit;">A등급</button>
-      <button id="pt-g2" onclick="setPriceTab(2)" style="flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;background:white;color:var(--g5);font-family:inherit;">B등급</button>
+      <button id="pt-g1" onclick="setPriceTab('std')" style="flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:800;cursor:pointer;background:var(--br);color:white;font-family:inherit;">표준단가</button>
+      <button id="pt-g2" onclick="setPriceTab('y')" style="flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:700;cursor:pointer;background:white;color:var(--g5);font-family:inherit;">Y단가</button>
     </div>
     <button onclick="showShareView()" style="width:100%;padding:12px;margin-bottom:12px;background:linear-gradient(135deg,var(--or),#C85000);border:none;border-radius:10px;color:white;font-size:14px;font-weight:800;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 3px 12px rgba(232,99,10,.35);">📤 공유용 단가표 보기</button>
     <div style="position:relative;margin-bottom:12px;">
@@ -1157,131 +1150,132 @@ const MODEL_DB={
 };
 const MODEL_KEYS=Object.keys(MODEL_DB);
 
+// std: 표준단가 (보드매입가+50,000) · y: Y단가 (보드매입가+45,000) · VAT 포함
 const DOOR_PRICES=[
-  {name:'매트 화이트 (특판)',type:'특판',cat:'매트',g1:94000,g2:99000},
-  {name:'매트 밀크화이트 (특판)',type:'특판',cat:'매트',g1:94000,g2:99000},
-  {name:'매트 캐시미어 (특판)',type:'특판',cat:'매트',g1:94000,g2:99000},
-  {name:'매트 포그그레이 (특판)',type:'특판',cat:'매트',g1:94000,g2:99000},
-  {name:'매트화이트 (후면강화)',type:'PET',cat:'매트',g1:105000,g2:110000},
-  {name:'매트밀크화이트 (후면강화)',type:'PET',cat:'매트',g1:105000,g2:110000},
-  {name:'매트캐시미어 (후면강화)',type:'PET',cat:'매트',g1:107000,g2:112000},
-  {name:'매트포그그레이 (후면강화)',type:'PET',cat:'매트',g1:107000,g2:112000},
-  {name:'매트샌드그레이 (후면강화)',type:'PET',cat:'매트',g1:107000,g2:112000},
-  {name:'매트 스노우베이지 (후면강화)',type:'PET',cat:'매트',g1:107000,g2:112000},
-  {name:'매트 듀이클라우드 (후면강화)',type:'PET',cat:'매트',g1:107000,g2:112000},
-  {name:'매트 브라운 (후면강화)',type:'PET',cat:'매트',g1:107000,g2:112000},
-  {name:'매트 그레이 (후면강화)',type:'PET',cat:'매트',g1:107000,g2:112000},
-  {name:'매트 라이트그레이 (후면강화)',type:'PET',cat:'매트',g1:107000,g2:112000},
-  {name:'매트 다크그레이 (후면강화)',type:'PET',cat:'매트',g1:107000,g2:112000},
-  {name:'매트 아이보리 (후면강화)',type:'PET',cat:'매트',g1:107000,g2:112000},
-  {name:'매트 코타화이트 (후면강화)',type:'PET',cat:'매트',g1:107000,g2:112000},
-  {name:'매트 펄 화이트 (후면강화)',type:'PET',cat:'매트',g1:108000,g2:113000},
-  {name:'매트 카페브라운 (후면강화)',type:'PET',cat:'매트',g1:104000,g2:109000},
-  {name:'매트 블랙',type:'PET',cat:'매트',g1:104000,g2:109000},
-  {name:'매트 딥그린',type:'PET',cat:'매트',g1:104000,g2:109000},
-  {name:'매트 딥블루',type:'PET',cat:'매트',g1:104000,g2:109000},
-  {name:'매트 인디고',type:'PET',cat:'매트',g1:104000,g2:109000},
-  {name:'매트 코튼블루',type:'PET',cat:'매트',g1:104000,g2:109000},
-  {name:'매트 미스트그린',type:'PET',cat:'매트',g1:104000,g2:109000},
-  {name:'매트 로지핑크',type:'PET',cat:'매트',g1:104000,g2:109000},
-  {name:'매트 스모키올리브',type:'PET',cat:'매트',g1:104000,g2:109000},
-  {name:'매트 허니드롭',type:'PET',cat:'매트',g1:104000,g2:109000},
-  {name:'매트 버터스카치',type:'PET',cat:'매트',g1:104000,g2:109000},
-  {name:'매트 스카이브리즈',type:'PET',cat:'매트',g1:104000,g2:109000},
-  {name:'매트 타우니레드',type:'PET',cat:'매트',g1:104000,g2:109000},
-  {name:'매트 펄 다크그레이',type:'PET',cat:'매트',g1:105000,g2:110000},
-  {name:'매트 펄 블랙',type:'PET',cat:'매트',g1:105000,g2:110000},
-  {name:'글로시 화이트',type:'PET',cat:'글로시',g1:104000,g2:109000},
-  {name:'글로시 밀크화이트',type:'PET',cat:'글로시',g1:104000,g2:109000},
-  {name:'글로시 캐시미어',type:'PET',cat:'글로시',g1:109000,g2:114000},
-  {name:'글로시 브라운',type:'PET',cat:'글로시',g1:109000,g2:114000},
-  {name:'글로시 그레이',type:'PET',cat:'글로시',g1:109000,g2:114000},
-  {name:'글로시 다크그레이',type:'PET',cat:'글로시',g1:109000,g2:114000},
-  {name:'글로시 딥블루',type:'PET',cat:'글로시',g1:109000,g2:114000},
-  {name:'글로시 코튼블루',type:'PET',cat:'글로시',g1:109000,g2:114000},
-  {name:'글로시 아이보리',type:'PET',cat:'글로시',g1:109000,g2:114000},
-  {name:'글로시 라이트그레이',type:'PET',cat:'글로시',g1:109000,g2:114000},
-  {name:'글로시 샌드그레이',type:'PET',cat:'글로시',g1:109000,g2:114000},
-  {name:'글로시 스모키올리브',type:'PET',cat:'글로시',g1:109000,g2:114000},
-  {name:'글로시 펄 다크그레이',type:'PET',cat:'글로시',g1:109000,g2:114000},
-  {name:'글로시 펄 블랙',type:'PET',cat:'글로시',g1:109000,g2:114000},
-  {name:'글로시 펄화이트',type:'PET',cat:'글로시',g1:106000,g2:111000},
-  {name:'슈가엘름',type:'PP',cat:'PP',g1:105000,g2:110000},
-  {name:'프렌치오크',type:'PP',cat:'PP',g1:105000,g2:110000},
-  {name:'피넛오크',type:'PP',cat:'PP',g1:105000,g2:110000},
-  {name:'카카오월넛',type:'PP',cat:'PP',g1:105000,g2:110000},
-  {name:'던오크',type:'PP',cat:'PP',g1:105000,g2:110000},
-  {name:'레더모카',type:'PP',cat:'PP',g1:105000,g2:110000},
-  {name:'레더크림',type:'PP',cat:'PP',g1:105000,g2:110000},
-  {name:'콘크리트화이트',type:'PP',cat:'PP',g1:107000,g2:112000},
-  {name:'콘크리트그레이',type:'PP',cat:'PP',g1:107000,g2:112000},
-  {name:'세라믹 문 퍼시픽',type:'PP',cat:'PP',g1:110000,g2:115000},
-  {name:'세라믹 문 그레이',type:'PP',cat:'PP',g1:110000,g2:115000},
-  {name:'세라믹 문 움브라',type:'PP',cat:'PP',g1:110000,g2:115000},
-  {name:'세라믹 문 브릭',type:'PP',cat:'PP',g1:110000,g2:115000},
-  {name:'네이처 오크',type:'PP',cat:'프레스티지 PP',g1:130000,g2:135000},
-  {name:'카타니아 오크',type:'PP',cat:'프레스티지 PP',g1:130000,g2:135000},
-  {name:'그레이쉬 오크',type:'PP',cat:'프레스티지 PP',g1:130000,g2:135000},
-  {name:'세이 오크',type:'PP',cat:'프레스티지 PP',g1:133000,g2:138000},
-  {name:'세이 메이플',type:'PP',cat:'프레스티지 PP',g1:133000,g2:138000},
-  {name:'아크 플랫화이트',type:'아크릴',cat:'프레스티지 아크릴',g1:127000,g2:132000},
-  {name:'아크 퓨어코튼',type:'아크릴',cat:'프레스티지 아크릴',g1:127000,g2:132000},
-  {name:'아크 샌드듄',type:'아크릴',cat:'프레스티지 아크릴',g1:127000,g2:132000},
-  {name:'아크 얼그레이',type:'아크릴',cat:'프레스티지 아크릴',g1:127000,g2:132000},
-  {name:'아크 런던그레이',type:'아크릴',cat:'프레스티지 아크릴',g1:127000,g2:132000},
-  {name:'아크 플라워블루',type:'아크릴',cat:'프레스티지 아크릴',g1:127000,g2:132000},
-  {name:'아크 미드나잇 블루',type:'아크릴',cat:'프레스티지 아크릴',g1:127000,g2:132000},
-  {name:'아크 미드나잇그레이',type:'아크릴',cat:'프레스티지 아크릴',g1:127000,g2:132000},
-  {name:'아크마멀레이드',type:'아크릴',cat:'프레스티지 아크릴',g1:127000,g2:132000},
-  {name:'아크 포레스트그린',type:'아크릴',cat:'프레스티지 아크릴',g1:127000,g2:132000},
-  {name:'크림화이트 HS004',type:'PVC',cat:'PVC (데코보드)',g1:98000,g2:103000},
-  {name:'HS046',type:'PVC',cat:'PVC (데코보드)',g1:98000,g2:103000},
-  {name:'HP521',type:'PVC',cat:'PVC (데코보드)',g1:101000,g2:106000},
-  {name:'HP522',type:'PVC',cat:'PVC (데코보드)',g1:101000,g2:106000},
-  {name:'HW1069',type:'PVC',cat:'PVC (데코보드)',g1:101000,g2:106000},
-  {name:'HW1081',type:'PVC',cat:'PVC (데코보드)',g1:101000,g2:106000},
-  {name:'오크마일드 HW1019',type:'PVC',cat:'PVC (데코보드)',g1:101000,g2:106000},
-  {name:'오크딥  HW1064',type:'PVC',cat:'PVC (데코보드)',g1:101000,g2:106000},
-  {name:'HW1077',type:'PVC',cat:'PVC (데코보드)',g1:101000,g2:106000},
-  {name:'HW1065',type:'PVC',cat:'PVC (데코보드)',g1:101000,g2:106000},
-  {name:'퓨어화이트(향균)/HC801',type:'PVC',cat:'PVC (데코보드)',g1:101000,g2:106000},
-  {name:'페일그레이(향균)/HC802',type:'PVC',cat:'PVC (데코보드)',g1:101000,g2:106000},
-  {name:'메탈바이브.실버',type:'PET',cat:'PET',g1:125000,g2:130000},
-  {name:'메탈 바이브.브라운',type:'PET',cat:'PET',g1:125000,g2:130000},
-  {name:'메탈 쉐도우 그라파이트',type:'PET',cat:'PET',g1:125000,g2:130000},
-  {name:'메탈 쉐도우 코퍼브라운',type:'PET',cat:'PET',g1:125000,g2:130000},
-  {name:'메탈 헤어라인',type:'PET',cat:'PET',g1:121000,g2:126000},
-  {name:'웨이비 퓨어코튼',type:'PET',cat:'PET',g1:121000,g2:126000},
-  {name:'웨이비 그레이',type:'PET',cat:'PET',g1:121000,g2:126000},
-  {name:'사피아노 화이트',type:'PET',cat:'PET',g1:117000,g2:122000},
-  {name:'사피아노 그레이',type:'PET',cat:'PET',g1:117000,g2:122000},
-  {name:'사피아노 블루',type:'PET',cat:'PET',g1:117000,g2:122000},
-  {name:'헤어라인 화이트',type:'PET',cat:'PET',g1:117000,g2:122000},
-  {name:'헤어라인 그레이',type:'PET',cat:'PET',g1:117000,g2:122000},
-  {name:'화이트유광',type:'LPM',cat:'MFB',g1:93000,g2:98000},
-  {name:'소프트화이트',type:'LPM',cat:'MFB',g1:93000,g2:98000},
-  {name:'코임브라',type:'LPM',cat:'MFB',g1:100000,g2:105000},
-  {name:'윈체스터월넛',type:'LPM',cat:'MFB',g1:100000,g2:105000},
-  {name:'스톤화이트',type:'LPM',cat:'MFB',g1:100000,g2:105000},
-  {name:'스톤 그레이',type:'LPM',cat:'MFB',g1:100000,g2:105000},
-  {name:'스톤 블랙',type:'LPM',cat:'MFB',g1:100000,g2:105000},
-  {name:'소프트 월넛',type:'LPM',cat:'MFB',g1:103000,g2:108000},
-  {name:'사하라누아르',type:'LPM',cat:'MFB',g1:106000,g2:111000},
-  {name:'아라베스카토',type:'LPM',cat:'MFB',g1:106000,g2:111000},
-  {name:'팔라디나',type:'LPM',cat:'MFB',g1:106000,g2:111000},
-  {name:'부클레',type:'LPM',cat:'MFB',g1:129000,g2:134000},
-  {name:'밤부',type:'LPM',cat:'MFB',g1:129000,g2:134000},
-  {name:'몽블랑 체스넛',type:'LPM',cat:'MFB',g1:106000,g2:111000},
-  {name:'웨이브화이트',type:'UV',cat:'UV',g1:106000,g2:111000},
-  {name:'웨이브그레이',type:'UV',cat:'UV',g1:106000,g2:111000},
-  {name:'리치 펄 라이트 그레이',type:'UV',cat:'UV',g1:106000,g2:111000},
-  {name:'라이트 그레이',type:'UV',cat:'UV',g1:106000,g2:111000},
-  {name:'리치 펄 화이트',type:'UV',cat:'UV',g1:96000,g2:101000},
-  {name:'유로 화이트',type:'UV',cat:'UV',g1:95000,g2:100000},
-  {name:'소프트화이트/방염',type:'LPM',cat:'방염보드(MFB/MFC)',g1:106000,g2:111000},
-  {name:'윈체스터월넛/방염',type:'LPM',cat:'방염보드(MFB/MFC)',g1:110000,g2:115000},
-  {name:'소프트화이트/방염 MFC',type:'LPM',cat:'방염보드(MFB/MFC)',g1:99000,g2:104000},
-  {name:'윈체스터월넛/방염 MFC',type:'LPM',cat:'방염보드(MFB/MFC)',g1:103000,g2:108000},
+  {name:'매트 화이트 (특판)',type:'특판',cat:'매트',std:99000,y:94000},
+  {name:'매트 밀크화이트 (특판)',type:'특판',cat:'매트',std:99000,y:94000},
+  {name:'매트 캐시미어 (특판)',type:'특판',cat:'매트',std:99000,y:94000},
+  {name:'매트 포그그레이 (특판)',type:'특판',cat:'매트',std:99000,y:94000},
+  {name:'매트화이트 (후면강화)',type:'PET',cat:'매트',std:110000,y:105000},
+  {name:'매트밀크화이트 (후면강화)',type:'PET',cat:'매트',std:110000,y:105000},
+  {name:'매트캐시미어 (후면강화)',type:'PET',cat:'매트',std:112000,y:107000},
+  {name:'매트포그그레이 (후면강화)',type:'PET',cat:'매트',std:112000,y:107000},
+  {name:'매트샌드그레이 (후면강화)',type:'PET',cat:'매트',std:112000,y:107000},
+  {name:'매트 스노우베이지 (후면강화)',type:'PET',cat:'매트',std:112000,y:107000},
+  {name:'매트 듀이클라우드 (후면강화)',type:'PET',cat:'매트',std:112000,y:107000},
+  {name:'매트 브라운 (후면강화)',type:'PET',cat:'매트',std:112000,y:107000},
+  {name:'매트 그레이 (후면강화)',type:'PET',cat:'매트',std:112000,y:107000},
+  {name:'매트 라이트그레이 (후면강화)',type:'PET',cat:'매트',std:112000,y:107000},
+  {name:'매트 다크그레이 (후면강화)',type:'PET',cat:'매트',std:112000,y:107000},
+  {name:'매트 아이보리 (후면강화)',type:'PET',cat:'매트',std:112000,y:107000},
+  {name:'매트 코타화이트 (후면강화)',type:'PET',cat:'매트',std:112000,y:107000},
+  {name:'매트 펄 화이트 (후면강화)',type:'PET',cat:'매트',std:113000,y:108000},
+  {name:'매트 카페브라운 (후면강화)',type:'PET',cat:'매트',std:109000,y:104000},
+  {name:'매트 블랙',type:'PET',cat:'매트',std:109000,y:104000},
+  {name:'매트 딥그린',type:'PET',cat:'매트',std:109000,y:104000},
+  {name:'매트 딥블루',type:'PET',cat:'매트',std:109000,y:104000},
+  {name:'매트 인디고',type:'PET',cat:'매트',std:109000,y:104000},
+  {name:'매트 코튼블루',type:'PET',cat:'매트',std:109000,y:104000},
+  {name:'매트 미스트그린',type:'PET',cat:'매트',std:109000,y:104000},
+  {name:'매트 로지핑크',type:'PET',cat:'매트',std:109000,y:104000},
+  {name:'매트 스모키올리브',type:'PET',cat:'매트',std:109000,y:104000},
+  {name:'매트 허니드롭',type:'PET',cat:'매트',std:109000,y:104000},
+  {name:'매트 버터스카치',type:'PET',cat:'매트',std:109000,y:104000},
+  {name:'매트 스카이브리즈',type:'PET',cat:'매트',std:109000,y:104000},
+  {name:'매트 타우니레드',type:'PET',cat:'매트',std:109000,y:104000},
+  {name:'매트 펄 다크그레이',type:'PET',cat:'매트',std:110000,y:105000},
+  {name:'매트 펄 블랙',type:'PET',cat:'매트',std:110000,y:105000},
+  {name:'글로시 화이트',type:'PET',cat:'글로시',std:109000,y:104000},
+  {name:'글로시 밀크화이트',type:'PET',cat:'글로시',std:109000,y:104000},
+  {name:'글로시 캐시미어',type:'PET',cat:'글로시',std:114000,y:109000},
+  {name:'글로시 브라운',type:'PET',cat:'글로시',std:114000,y:109000},
+  {name:'글로시 그레이',type:'PET',cat:'글로시',std:114000,y:109000},
+  {name:'글로시 다크그레이',type:'PET',cat:'글로시',std:114000,y:109000},
+  {name:'글로시 딥블루',type:'PET',cat:'글로시',std:114000,y:109000},
+  {name:'글로시 코튼블루',type:'PET',cat:'글로시',std:114000,y:109000},
+  {name:'글로시 아이보리',type:'PET',cat:'글로시',std:114000,y:109000},
+  {name:'글로시 라이트그레이',type:'PET',cat:'글로시',std:114000,y:109000},
+  {name:'글로시 샌드그레이',type:'PET',cat:'글로시',std:114000,y:109000},
+  {name:'글로시 스모키올리브',type:'PET',cat:'글로시',std:114000,y:109000},
+  {name:'글로시 펄 다크그레이',type:'PET',cat:'글로시',std:114000,y:109000},
+  {name:'글로시 펄 블랙',type:'PET',cat:'글로시',std:114000,y:109000},
+  {name:'글로시 펄화이트',type:'PET',cat:'글로시',std:111000,y:106000},
+  {name:'슈가엘름',type:'PP',cat:'PP',std:110000,y:105000},
+  {name:'프렌치오크',type:'PP',cat:'PP',std:110000,y:105000},
+  {name:'피넛오크',type:'PP',cat:'PP',std:110000,y:105000},
+  {name:'카카오월넛',type:'PP',cat:'PP',std:110000,y:105000},
+  {name:'던오크',type:'PP',cat:'PP',std:110000,y:105000},
+  {name:'레더모카',type:'PP',cat:'PP',std:110000,y:105000},
+  {name:'레더크림',type:'PP',cat:'PP',std:110000,y:105000},
+  {name:'콘크리트화이트',type:'PP',cat:'PP',std:112000,y:107000},
+  {name:'콘크리트그레이',type:'PP',cat:'PP',std:112000,y:107000},
+  {name:'세라믹 문 퍼시픽',type:'PP',cat:'PP',std:115000,y:110000},
+  {name:'세라믹 문 그레이',type:'PP',cat:'PP',std:115000,y:110000},
+  {name:'세라믹 문 움브라',type:'PP',cat:'PP',std:115000,y:110000},
+  {name:'세라믹 문 브릭',type:'PP',cat:'PP',std:115000,y:110000},
+  {name:'네이처 오크',type:'PP',cat:'프레스티지 PP',std:135000,y:130000},
+  {name:'카타니아 오크',type:'PP',cat:'프레스티지 PP',std:135000,y:130000},
+  {name:'그레이쉬 오크',type:'PP',cat:'프레스티지 PP',std:135000,y:130000},
+  {name:'세이 오크',type:'PP',cat:'프레스티지 PP',std:138000,y:133000},
+  {name:'세이 메이플',type:'PP',cat:'프레스티지 PP',std:138000,y:133000},
+  {name:'아크 플랫화이트',type:'아크릴',cat:'프레스티지 아크릴',std:132000,y:127000},
+  {name:'아크 퓨어코튼',type:'아크릴',cat:'프레스티지 아크릴',std:132000,y:127000},
+  {name:'아크 샌드듄',type:'아크릴',cat:'프레스티지 아크릴',std:132000,y:127000},
+  {name:'아크 얼그레이',type:'아크릴',cat:'프레스티지 아크릴',std:132000,y:127000},
+  {name:'아크 런던그레이',type:'아크릴',cat:'프레스티지 아크릴',std:132000,y:127000},
+  {name:'아크 플라워블루',type:'아크릴',cat:'프레스티지 아크릴',std:132000,y:127000},
+  {name:'아크 미드나잇 블루',type:'아크릴',cat:'프레스티지 아크릴',std:132000,y:127000},
+  {name:'아크 미드나잇그레이',type:'아크릴',cat:'프레스티지 아크릴',std:132000,y:127000},
+  {name:'아크마멀레이드',type:'아크릴',cat:'프레스티지 아크릴',std:132000,y:127000},
+  {name:'아크 포레스트그린',type:'아크릴',cat:'프레스티지 아크릴',std:132000,y:127000},
+  {name:'크림화이트 HS004',type:'PVC',cat:'PVC (데코보드)',std:103000,y:98000},
+  {name:'HS046',type:'PVC',cat:'PVC (데코보드)',std:103000,y:98000},
+  {name:'HP521',type:'PVC',cat:'PVC (데코보드)',std:106000,y:101000},
+  {name:'HP522',type:'PVC',cat:'PVC (데코보드)',std:106000,y:101000},
+  {name:'HW1069',type:'PVC',cat:'PVC (데코보드)',std:106000,y:101000},
+  {name:'HW1081',type:'PVC',cat:'PVC (데코보드)',std:106000,y:101000},
+  {name:'오크마일드 HW1019',type:'PVC',cat:'PVC (데코보드)',std:106000,y:101000},
+  {name:'오크딥  HW1064',type:'PVC',cat:'PVC (데코보드)',std:106000,y:101000},
+  {name:'HW1077',type:'PVC',cat:'PVC (데코보드)',std:106000,y:101000},
+  {name:'HW1065',type:'PVC',cat:'PVC (데코보드)',std:106000,y:101000},
+  {name:'퓨어화이트(향균)/HC801',type:'PVC',cat:'PVC (데코보드)',std:106000,y:101000},
+  {name:'페일그레이(향균)/HC802',type:'PVC',cat:'PVC (데코보드)',std:106000,y:101000},
+  {name:'메탈바이브.실버',type:'PET',cat:'PET',std:130000,y:125000},
+  {name:'메탈 바이브.브라운',type:'PET',cat:'PET',std:130000,y:125000},
+  {name:'메탈 쉐도우 그라파이트',type:'PET',cat:'PET',std:130000,y:125000},
+  {name:'메탈 쉐도우 코퍼브라운',type:'PET',cat:'PET',std:130000,y:125000},
+  {name:'메탈 헤어라인',type:'PET',cat:'PET',std:126000,y:121000},
+  {name:'웨이비 퓨어코튼',type:'PET',cat:'PET',std:126000,y:121000},
+  {name:'웨이비 그레이',type:'PET',cat:'PET',std:126000,y:121000},
+  {name:'사피아노 화이트',type:'PET',cat:'PET',std:122000,y:117000},
+  {name:'사피아노 그레이',type:'PET',cat:'PET',std:122000,y:117000},
+  {name:'사피아노 블루',type:'PET',cat:'PET',std:122000,y:117000},
+  {name:'헤어라인 화이트',type:'PET',cat:'PET',std:122000,y:117000},
+  {name:'헤어라인 그레이',type:'PET',cat:'PET',std:122000,y:117000},
+  {name:'화이트유광',type:'LPM',cat:'MFB',std:98000,y:93000},
+  {name:'소프트화이트',type:'LPM',cat:'MFB',std:98000,y:93000},
+  {name:'코임브라',type:'LPM',cat:'MFB',std:105000,y:100000},
+  {name:'윈체스터월넛',type:'LPM',cat:'MFB',std:105000,y:100000},
+  {name:'스톤화이트',type:'LPM',cat:'MFB',std:105000,y:100000},
+  {name:'스톤 그레이',type:'LPM',cat:'MFB',std:105000,y:100000},
+  {name:'스톤 블랙',type:'LPM',cat:'MFB',std:105000,y:100000},
+  {name:'소프트 월넛',type:'LPM',cat:'MFB',std:108000,y:103000},
+  {name:'사하라누아르',type:'LPM',cat:'MFB',std:111000,y:106000},
+  {name:'아라베스카토',type:'LPM',cat:'MFB',std:111000,y:106000},
+  {name:'팔라디나',type:'LPM',cat:'MFB',std:111000,y:106000},
+  {name:'부클레',type:'LPM',cat:'MFB',std:134000,y:129000},
+  {name:'밤부',type:'LPM',cat:'MFB',std:134000,y:129000},
+  {name:'몽블랑 체스넛',type:'LPM',cat:'MFB',std:111000,y:106000},
+  {name:'웨이브화이트',type:'UV',cat:'UV',std:111000,y:106000},
+  {name:'웨이브그레이',type:'UV',cat:'UV',std:111000,y:106000},
+  {name:'리치 펄 라이트 그레이',type:'UV',cat:'UV',std:111000,y:106000},
+  {name:'라이트 그레이',type:'UV',cat:'UV',std:111000,y:106000},
+  {name:'리치 펄 화이트',type:'UV',cat:'UV',std:101000,y:96000},
+  {name:'유로 화이트',type:'UV',cat:'UV',std:100000,y:95000},
+  {name:'소프트화이트/방염',type:'LPM',cat:'방염보드(MFB/MFC)',std:111000,y:106000},
+  {name:'윈체스터월넛/방염',type:'LPM',cat:'방염보드(MFB/MFC)',std:115000,y:110000},
+  {name:'소프트화이트/방염 MFC',type:'LPM',cat:'방염보드(MFB/MFC)',std:104000,y:99000},
+  {name:'윈체스터월넛/방염 MFC',type:'LPM',cat:'방염보드(MFB/MFC)',std:108000,y:103000},
 ];
 const SHEET_W=2440,SHEET_H=1220,KERF=6;
 
@@ -1736,22 +1730,13 @@ document.addEventListener('click',e=>{
 });
 
 // ===== 도어 =====
-let doorGroups=[],doorCnt=0,doorGrade=1,hansolDoorGrade='std';
-const HANSOL_GRADE_LABEL={std:'표준단가',y:'Y단가'};
-function setHansolDoorGrade(k){
-  hansolDoorGrade=k;
+let doorGroups=[],doorCnt=0,doorGrade='std'; // 'std' 표준단가 | 'y' Y단가
+const GRADE_LABEL={std:'표준단가',y:'Y단가'};
+function setDoorGrade(k){
+  doorGrade=k;
   ['std','y'].forEach(n=>{
-    const b=document.getElementById(`hansol-grade-btn-${n}`);if(!b)return;
-    if(n===k){b.style.background='var(--br)';b.style.borderColor='var(--br)';b.style.color='white';b.style.fontWeight='800';}
-    else{b.style.background='white';b.style.borderColor='var(--bd)';b.style.color='var(--g5)';b.style.fontWeight='700';}
-  });
-  renderDoorGroups();
-}
-function setDoorGrade(g){
-  doorGrade=g;
-  [1,2].forEach(n=>{
     const b=document.getElementById(`grade-btn-${n}`);if(!b)return;
-    if(n===g){b.style.background='var(--br)';b.style.borderColor='var(--br)';b.style.color='white';b.style.fontWeight='800';}
+    if(n===k){b.style.background='var(--br)';b.style.borderColor='var(--br)';b.style.color='white';b.style.fontWeight='800';}
     else{b.style.background='white';b.style.borderColor='var(--bd)';b.style.color='var(--g5)';b.style.fontWeight='700';}
   });
   renderDoorGroups();
@@ -1759,11 +1744,11 @@ function setDoorGrade(g){
 function getUnitPrice(brand,key){
   if(brand==='hansol'){
     const p=HANSOL_DOOR_PRICES.find(p=>p.name===key);
-    return p?p[hansolDoorGrade]:0;
+    return p?p[doorGrade]:0;
   }
   const[name,type]=key.split('|');
   const p=DOOR_PRICES.find(p=>p.name===name&&p.type===type)||DOOR_PRICES.find(p=>p.name===name);
-  return p?p[`g${doorGrade}`]:0;
+  return p?p[doorGrade]:0;
 }
 function addDoorGroup(){
   const key=DOOR_PRICES[0].name+'|'+DOOR_PRICES[0].type;
@@ -1948,7 +1933,7 @@ function doDoorPrint(){
 // ===== 공유용 단가표 (수정됨: 고아 코드 블록 제거) =====
 function showShareView(){
   if(priceManufacturer==='hansol'){showHansolShareView();return;}
-  const gradeKey=`g${priceTabGrade}`;
+  const gradeKey=priceTabGrade;
   const catOrder=['매트','글로시','PP','프레스티지 PP','프레스티지 아크릴','PVC (데코보드)','PET','MFB','UV','방염보드(MFB/MFC)'];
   const catLabel={'매트':'매트 도어','글로시':'글로시 도어','PP':'PP 우드/키친','프레스티지 PP':'프레스티지 PP','프레스티지 아크릴':'프레스티지 아크릴','PVC (데코보드)':'PVC 데코보드','PET':'PET (메탈·특수)','MFB':'MFB / LPM','UV':'UV 코팅','방염보드(MFB/MFC)':'방염 처리'};
   const catColor={'매트':'#1B3A5C','글로시':'#1B3A5C','PP':'#2F7D4F','프레스티지 PP':'#1A5080','프레스티지 아크릴':'#7B5EA7','PVC (데코보드)':'#5A6B7A','PET':'#5A6A7A','MFB':'#555E6E','UV':'#2A7A5A','방염보드(MFB/MFC)':'#C04010'};
@@ -1979,7 +1964,7 @@ function showShareView(){
 
   const html=`<div style="padding:12px 12px 20px;background:white;font-family:'Noto Sans KR',sans-serif;">
     <div style="text-align:center;padding-bottom:10px;margin-bottom:12px;border-bottom:2.5px solid #E8630A">
-      <div style="font-size:15px;font-weight:900;color:#1B3A5C;letter-spacing:1.5px">예림 생산도어 단가표</div>
+      <div style="font-size:15px;font-weight:900;color:#1B3A5C;letter-spacing:1.5px">예림 생산도어 단가표 <span style="font-size:12px;color:#E8630A">(${GRADE_LABEL[gradeKey]})</span></div>
       <div style="display:flex;justify-content:center;gap:8px;margin-top:4px;flex-wrap:wrap">
         <span style="font-size:10px;color:#5A6B7A">기준일: ${dateStr}</span>
         <span style="font-size:10px;color:#ccc">|</span>
@@ -1990,7 +1975,7 @@ function showShareView(){
     </div>
     <div style="columns:2;column-gap:8px;column-fill:balance">${sections}</div>
     <div style="margin-top:10px;padding:8px 10px;background:#EEF8EE;border-radius:7px;border:1.5px solid #A8D4A8">
-      <div style="font-size:10px;color:#2A6A2A;line-height:1.8">✅ <b>단가는 부가세 포함</b> 가격입니다<br>📞 041-534-7475 · 기업은행 332-135674-04-011 (㈜오션메이드)</div>
+      <div style="font-size:10px;color:#2A6A2A;line-height:1.8">✅ <b>단가는 부가세 포함</b> 가격입니다 · ${GRADE_LABEL[gradeKey]} · 제로조인트 기준<br>📞 041-534-7475 · 기업은행 332-135674-04-011 (㈜오션메이드)</div>
     </div>
   </div>`;
 
@@ -2000,7 +1985,7 @@ function showShareView(){
 }
 
 function showHansolShareView(){
-  const hansolKey=hansolPriceKey(),hansolLabel=HANSOL_GRADE_LABEL[hansolKey];
+  const hansolKey=priceTabGrade,hansolLabel=GRADE_LABEL[hansolKey];
   const catOrder=['시그니처','스페셜','엔트리'];
   const catColor={'시그니처':'#1B3A5C','스페셜':'#7B5EA7','엔트리':'#2F7D4F'};
   const groups={};
@@ -2049,7 +2034,7 @@ function showHansolShareView(){
 }
 
 function shareFileBaseName(){
-  return priceManufacturer==='hansol'?('한솔_생산도어_단가표_'+HANSOL_GRADE_LABEL[hansolPriceKey()]):'예림_생산도어_단가표';
+  return (priceManufacturer==='hansol'?'한솔':'예림')+'_생산도어_단가표_'+GRADE_LABEL[priceTabGrade];
 }
 
 // ===== 단가표 이미지/PDF 저장 =====
@@ -2226,11 +2211,11 @@ function renderFilmPriceTable(){
 }
 
 // ===== 도어 단가표 탭 =====
-let priceTabGrade=1;
+let priceTabGrade='std'; // 'std' 표준단가 | 'y' Y단가
 let priceManufacturer='yerim'; // 'yerim' | 'hansol'
 let doorPriceSectionOpen={'매트':true,'글로시':false,'PP':false,'프레스티지 PP':false,'프레스티지 아크릴':false,'PVC (데코보드)':false,'PET':false,'MFB':false,'UV':false,'방염보드(MFB/MFC)':false};
 let hansolPriceSectionOpen={'시그니처':true,'스페셜':false,'엔트리':false};
-function hansolPriceKey(){return priceTabGrade===2?'y':'std';}
+
 function setPriceManufacturer(m){
   priceManufacturer=m;
   const s1='flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;font-weight:800;cursor:pointer;background:var(--or);color:white;font-family:inherit;';
@@ -2241,8 +2226,6 @@ function setPriceManufacturer(m){
   const title=document.getElementById('price-tab-title'),sub=document.getElementById('price-tab-sub');
   const shareTitle=document.getElementById('share-modal-title');
   gradeWrap.style.display='flex';
-  document.getElementById('pt-g1').textContent=m==='hansol'?'표준단가':'A등급';
-  document.getElementById('pt-g2').textContent=m==='hansol'?'Y단가':'B등급';
   if(m==='yerim'){
     title.textContent='예림 생산도어 단가표';
     sub.textContent='SUPER 레이저도어 · 2025.06.15 기준';
@@ -2259,8 +2242,8 @@ function setPriceTab(g){
   priceTabGrade=g;
   const s1='flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;cursor:pointer;background:var(--br);color:white;font-family:inherit;font-weight:800;';
   const s2='flex:1;padding:8px;border-radius:8px;border:none;font-size:13px;cursor:pointer;background:white;color:var(--g5);font-family:inherit;font-weight:700;';
-  document.getElementById('pt-g1').style.cssText=g===1?s1:s2;
-  document.getElementById('pt-g2').style.cssText=g===2?s1:s2;
+  document.getElementById('pt-g1').style.cssText=g==='std'?s1:s2;
+  document.getElementById('pt-g2').style.cssText=g==='y'?s1:s2;
   renderPriceTable();
 }
 function filterPriceTable(){renderPriceTable();}
@@ -2270,7 +2253,7 @@ function renderPriceTable(){
   if(priceManufacturer==='hansol'){renderHansolPriceTable();return;}
   const el=document.getElementById('price-table-content');if(!el)return;
   const q=(document.getElementById('price-search')?.value||'').toLowerCase();
-  const gradeKey=`g${priceTabGrade}`;
+  const gradeKey=priceTabGrade;
   const hasSearch=q.length>0;
   const catOrder=['매트','글로시','PP','프레스티지 PP','프레스티지 아크릴','PVC (데코보드)','PET','MFB','UV','방염보드(MFB/MFC)'];
   const catLabel={'매트':'매트 도어','글로시':'글로시 도어','PP':'PP 우드/키친','프레스티지 PP':'프레스티지 PP','프레스티지 아크릴':'프레스티지 아크릴','PVC (데코보드)':'PVC 데코보드','PET':'PET (메탈·특수)','MFB':'MFB / LPM','UV':'UV 코팅','방염보드(MFB/MFC)':'방염 처리'};
@@ -2300,7 +2283,7 @@ function renderPriceTable(){
     </div>`;
   });
   html+=`<div style="padding:9px 12px;background:#EEF8EE;border-radius:8px;border:1.5px solid #A8D4A8;margin-top:4px">
-    <div style="font-size:11px;color:#2A6A2A;line-height:1.8">✅ <b>모든 단가는 부가세(VAT) 포함</b> 가격입니다<br>📐 원판 2440×1220mm · SUPER 레이저도어 · 2025.06.15~</div>
+    <div style="font-size:11px;color:#2A6A2A;line-height:1.8">✅ <b>모든 단가는 부가세(VAT) 포함</b> 가격입니다 · ${GRADE_LABEL[gradeKey]}<br>📐 원판 2440×1220mm · SUPER 레이저도어 · 2025.06.15~</div>
   </div>`;
   el.innerHTML=html;
 }
@@ -2308,7 +2291,7 @@ function renderHansolPriceTable(){
   const el=document.getElementById('price-table-content');if(!el)return;
   const q=(document.getElementById('price-search')?.value||'').toLowerCase();
   const hasSearch=q.length>0;
-  const hansolKey=hansolPriceKey();
+  const hansolKey=priceTabGrade;
   const catOrder=['시그니처','스페셜','엔트리'];
   const catColor={'시그니처':'#1B3A5C','스페셜':'#7B5EA7','엔트리':'#2F7D4F'};
   const groups={};
@@ -2336,7 +2319,7 @@ function renderHansolPriceTable(){
     </div>`;
   });
   html+=`<div style="padding:9px 12px;background:#EEF8EE;border-radius:8px;border:1.5px solid #A8D4A8;margin-top:4px">
-    <div style="font-size:11px;color:#2A6A2A;line-height:1.8">✅ <b>모든 단가는 부가세(VAT) 포함</b> 가격입니다 · ${HANSOL_GRADE_LABEL[hansolKey]}<br>📐 제로조인트 기준 · 한솔 생산도어 · 2026.06.18~</div>
+    <div style="font-size:11px;color:#2A6A2A;line-height:1.8">✅ <b>모든 단가는 부가세(VAT) 포함</b> 가격입니다 · ${GRADE_LABEL[hansolKey]}<br>📐 제로조인트 기준 · 한솔 생산도어 · 2026.06.18~</div>
   </div>`;
   el.innerHTML=html;
 }
