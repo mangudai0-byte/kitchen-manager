@@ -657,6 +657,10 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
 .dg-no{background:var(--br);color:#fff}
 .dg-amt{color:var(--br)}
 .dg-chips button.on{box-shadow:0 2px 6px rgba(27,58,92,.25)}
+.tier-set{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin:-2px 0 10px;flex-wrap:wrap}
+.tier-set span{font-size:12px;color:var(--km-muted);margin-right:2px}
+.tier-tg{height:28px;padding:0 10px;border-radius:14px;border:1px solid var(--km-line);background:#fff;color:#8B95A1;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.tier-tg.on{border-color:var(--br);color:var(--br);background:#F2F7FC}
 .km-fold{background:var(--km-surface);border-radius:var(--km-r);margin-top:12px}
 .km-fold>summary{list-style:none;cursor:pointer;padding:16px 20px;font-size:14px;font-weight:600;color:var(--km-sub);display:flex;justify-content:space-between}
 .km-fold>summary::-webkit-details-marker{display:none}
@@ -1016,6 +1020,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
       <div class="seg" style="flex:0 0 36%"><button id="pm-yerim" class="on" onclick="setPriceManufacturer('yerim')">예림</button><button id="pm-hansol" onclick="setPriceManufacturer('hansol')">한솔</button></div>
       <div class="seg" id="price-tier-seg"></div>
     </div>
+    <div class="tier-set" id="price-tier-set" style="display:none"></div>
     <div class="pt-client"><span>거래처</span><select id="price-client" onchange="ptSetClient('door',this.value)"></select></div>
     <div class="pt-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="text" id="price-search" placeholder="색상명 검색" oninput="filterPriceTable()"></div>
     <div id="price-table-content"></div>
@@ -1821,22 +1826,33 @@ let doorGroups=[],doorCnt=0;
 // ===== 단가 종류 (제조사마다 다름) =====
 const PRICE_TIERS={yerim:[['std','표준단가'],['y','Y단가']],hansol:[['std','표준단가'],['a','A단가'],['h','H단가']]};
 const tierLabel=(brand,k)=>((PRICE_TIERS[brand]||[]).find(t=>t[0]===k)||[])[1]||'';
+// 공유값 'tiers_off' = {브랜드:[끈 단가…]} · 관리자가 켜고 끔 · 표준단가는 끌 수 없음
+function tiersOff(brand){const v=(KM.state&&KM.state.kv||{}).tiers_off;return new Set(v&&Array.isArray(v[brand])?v[brand]:[]);}
+function activeTiers(brand){const off=tiersOff(brand);return PRICE_TIERS[brand].filter(([k])=>k==='std'||!off.has(k));}
+function fixTier(brand,k){return activeTiers(brand).some(t=>t[0]===k)?k:'std';}
+function toggleTierOff(brand,k){
+  if(!mgIsAdmin()||k==='std')return;
+  const cur=Object.assign({},(KM.state.kv||{}).tiers_off||{});
+  const set=new Set(cur[brand]||[]);set.has(k)?set.delete(k):set.add(k);cur[brand]=[...set];
+  kmSetKV('tiers_off',cur);renderPriceTable();renderDoorGroups();updateDoorTotals();
+}
 let doorTier={yerim:'std',hansol:'std'}; // 견적서에 적용할 단가 (내부용)
 function setDoorTier(brand,k){doorTier[brand]=k;renderDoorGroups();updateDoorTotals();}
 function renderDoorTierButtons(){
   ['yerim','hansol'].forEach(b=>{
     const el=document.getElementById('door-tier-'+b);if(!el)return;
-    el.innerHTML=PRICE_TIERS[b].map(([k,l])=>`<button type="button" class="${doorTier[b]===k?'on':''}" onclick="setDoorTier('${b}','${k}')">${l}</button>`).join('');
+    doorTier[b]=fixTier(b,doorTier[b]);
+    el.innerHTML=activeTiers(b).map(([k,l])=>`<button type="button" class="${doorTier[b]===k?'on':''}" onclick="setDoorTier('${b}','${k}')">${l}</button>`).join('');
   });
 }
 function getUnitPrice(brand,key){
   if(brand==='hansol'){
     const p=HANSOL_DOOR_PRICES.find(p=>p.name===key);
-    return p?p[doorTier.hansol]:0;
+    return p?p[fixTier('hansol',doorTier.hansol)]:0;
   }
   const[name,type]=key.split('|');
   const p=DOOR_PRICES.find(p=>p.name===name&&p.type===type)||DOOR_PRICES.find(p=>p.name===name);
-  return p?p[doorTier.yerim]:0;
+  return p?p[fixTier('yerim',doorTier.yerim)]:0;
 }
 function addDoorGroup(){
   const key=DOOR_PRICES[0].name+'|'+DOOR_PRICES[0].type;
@@ -2381,7 +2397,14 @@ function ptRenderTable(brand,elId,q){
 function renderPriceTable(){
   const brand=ptBrandNow('door');
   const seg=document.getElementById('price-tier-seg');
-  if(seg)seg.innerHTML=PRICE_TIERS[brand].map(([k,l])=>`<button class="${priceTier[brand]===k?'on':''}" onclick="setPriceTab('${k}')">${l}</button>`).join('');
+  priceTier[brand]=fixTier(brand,priceTier[brand]);
+  if(seg)seg.innerHTML=activeTiers(brand).map(([k,l])=>`<button class="${priceTier[brand]===k?'on':''}" onclick="setPriceTab('${k}')">${l}</button>`).join('');
+  const tset=document.getElementById('price-tier-set');
+  if(tset){
+    const opt=PRICE_TIERS[brand].filter(([k])=>k!=='std');
+    tset.style.display=mgIsAdmin()?'flex':'none';
+    tset.innerHTML='<span>단가 켜기/끄기</span>'+opt.map(([k,l])=>{const on=!tiersOff(brand).has(k);return `<button class="tier-tg${on?' on':''}" onclick="toggleTierOff('${brand}','${k}')">${l} ${on?'켜짐':'꺼짐'}</button>`;}).join('');
+  }
   const sel=document.getElementById('price-client');if(sel)sel.innerHTML=ptClientOptions('door');
   ptRenderTable(brand,'price-table-content',(document.getElementById('price-search')?.value||'').toLowerCase());
 }
