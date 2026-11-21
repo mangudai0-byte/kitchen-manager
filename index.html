@@ -636,6 +636,27 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
 .pt-note{font-size:12px;color:var(--km-muted);line-height:1.7;padding:4px 4px 0}
 .pt-note b{color:var(--km-sub);font-weight:600}
 .pt-empty{text-align:center;padding:28px;color:var(--km-muted);font-size:14px}
+.seg button.on{background:var(--br);color:#fff;box-shadow:0 2px 6px rgba(27,58,92,.25)}
+.pt-sec{border:1px solid #E3E8EE;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.pt-head{background:#F4F6F9;background:color-mix(in srgb,var(--c,#1B3A5C) 9%,#fff);border-left:5px solid var(--c,#1B3A5C);padding-left:13px}
+.pt-head .pt-dot{display:none}
+.pt-name{color:var(--c,#1B3A5C);font-weight:800}
+.pt-from{color:var(--c,#1B3A5C);font-weight:700}
+.pt-chev{stroke:var(--c,#8B95A1)}
+.pt-row:nth-of-type(odd){background:#FAFBFC}
+.pt-row .p{color:var(--c,#1B3A5C);font-weight:800}
+.pt-sub{background:#F1F3F6;background:color-mix(in srgb,var(--c,#1B3A5C) 5%,#F7F8FA);color:var(--c,#4E5968)}
+.pt-bar{border:1px solid #DCE6F2;background:#F2F7FC}
+.pt-bar.edit{border-color:#F2C58A;background:#FFF6E8}
+.pt-bar b{color:#1B3A5C}
+.pt-client{border-color:#DCE6F2}
+.pt-client span{color:#1B3A5C}
+.pt-note{background:#EEF8EE;border:1px solid #CFE8CF;border-radius:10px;padding:10px 12px;margin-top:6px;color:#2A6A2A}
+.pt-note b{color:#1E7A48}
+.dg-head{background:#F2F7FC;border-left:5px solid var(--br);padding-left:11px}
+.dg-no{background:var(--br);color:#fff}
+.dg-amt{color:var(--br)}
+.dg-chips button.on{box-shadow:0 2px 6px rgba(27,58,92,.25)}
 .km-fold{background:var(--km-surface);border-radius:var(--km-r);margin-top:12px}
 .km-fold>summary{list-style:none;cursor:pointer;padding:16px 20px;font-size:14px;font-weight:600;color:var(--km-sub);display:flex;justify-content:space-between}
 .km-fold>summary::-webkit-details-marker{display:none}
@@ -2330,7 +2351,7 @@ function ptRenderTable(brand,elId,q){
     const isOpen=hasSearch||B.sectionOpen()[cat]===true;
     const live=items.filter(x=>!x.off);
     const from=live.length?(B.fromPrefix||'')+Math.min(...live.map(x=>B.price(x.p,tier))).toLocaleString()+B.fromSuffix:'';
-    html+=`<div class="pt-sec${isOpen?' open':''}">
+    html+=`<div class="pt-sec${isOpen?' open':''}" style="--c:${color}">
       <div class="pt-head" onclick="ptToggleSection('${brand}',${ci})">
         <span class="pt-dot" style="background:${color}"></span><span class="pt-name">${label}</span><span class="pt-cnt">${editing?`${live.length}/${items.length}`:`${live.length}종`}</span>
         ${editing?`<span style="margin-left:auto;display:flex;gap:6px"><button class="pt-mini" onclick="ptSetCat(${ci},true,event)">공개</button><button class="pt-mini" onclick="ptSetCat(${ci},false,event)">닫기</button></span>`
