@@ -587,6 +587,15 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
 .dg-chips button.on{background:var(--br);color:#fff}
 .dg-del{width:100%;height:44px;margin-top:14px;border:none;border-radius:12px;background:#FDECEA;color:#D92D20;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 .seg.sm button{height:36px;font-size:14px}
+/* ---------- 거래처·재고 표시 ---------- */
+.pt-client{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--km-line);border-radius:12px;padding:0 12px;margin-bottom:10px;height:46px}
+.pt-client span{font-size:13px;font-weight:600;color:var(--km-sub);white-space:nowrap}
+.pt-client select{flex:1;min-width:0;border:none;background:transparent;font-size:15px;font-weight:600;color:var(--km-text);height:44px;font-family:inherit;outline:none}
+.stk{height:28px;padding:0 10px;border-radius:14px;border:1px solid var(--km-line);background:#fff;color:#B0B8C1;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0}
+.stk.on{background:#1E9E5A;border-color:#1E9E5A;color:#fff}
+.stk-b{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;background:#E7F6EE;color:#1E9E5A;font-size:11px;font-weight:700;vertical-align:1px}
+.pt-mini.pri{background:var(--br);color:#fff}
+.tier-lbl{font-size:13px;font-weight:600;color:var(--km-sub)}
 /* ---------- 단가표 (공통, 단순화) ---------- */
 .seg{display:flex;background:#E8EBEE;border-radius:12px;padding:3px;gap:2px;flex:1;min-width:0}
 .seg button{flex:1;height:38px;border:none;border-radius:9px;background:transparent;color:var(--km-sub);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
@@ -914,7 +923,10 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
         </div>
         <div class="field" style="margin-top:4px">
           <label>적용 단가 <span style="font-weight:400;color:var(--km-muted)">· 내부용</span></label>
-          <div class="seg"><button type="button" id="grade-btn-std" class="on" onclick="setDoorGrade('std')">표준단가</button><button type="button" id="grade-btn-y" onclick="setDoorGrade('y')">Y단가</button></div>
+          <div style="display:grid;grid-template-columns:40px 1fr;gap:8px 10px;align-items:center">
+            <span class="tier-lbl">예림</span><div class="seg sm" id="door-tier-yerim"></div>
+            <span class="tier-lbl">한솔</span><div class="seg sm" id="door-tier-hansol"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -954,6 +966,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
     <button class="th-btn" onclick="showFilmShareView()">공유</button>
   </div></div>
   <div class="container" style="padding-top:14px;padding-bottom:80px;">
+    <div class="pt-client"><span>거래처</span><select id="film-client" onchange="ptSetClient('film',this.value)"></select></div>
     <div class="pt-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="text" id="fp-search" placeholder="색상명·품번 검색" oninput="renderFilmPriceTable()"></div>
     <div class="pt-tools"><button class="pt-link" id="fp-allbtn" onclick="toggleAllFilmSections()">모두 펼치기</button></div>
     <div id="film-price-content"></div>
@@ -965,7 +978,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
     <div class="modal-bar">
       <button class="cls-btn" onclick="closeOvl('film-share-ovl')">‹ 뒤로</button>
       <h3>예림필름 단가표</h3>
-      <button onclick="saveShareAsImage('film-share-parea','예림_인테리어필름_단가표',this)" style="height:34px;padding:0 12px;background:var(--or);border:none;border-radius:7px;font-size:13px;color:white;font-weight:700;cursor:pointer;">🖼 이미지 저장</button>
+      <button onclick="saveShareAsImage('film-share-parea',filmShareFileBaseName(),this)" style="height:34px;padding:0 12px;background:var(--or);border:none;border-radius:7px;font-size:13px;color:white;font-weight:700;cursor:pointer;">🖼 이미지 저장</button>
     </div>
     <div class="parea" id="film-share-parea"></div>
   </div>
@@ -979,9 +992,10 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
   </div></div>
   <div class="container" style="padding-top:14px;padding-bottom:80px;">
     <div class="pt-ctrl">
-      <div class="seg"><button id="pm-yerim" class="on" onclick="setPriceManufacturer('yerim')">예림</button><button id="pm-hansol" onclick="setPriceManufacturer('hansol')">한솔</button></div>
-      <div class="seg" id="grade-toggle-wrap"><button id="pt-g1" class="on" onclick="setPriceTab('std')">표준단가</button><button id="pt-g2" onclick="setPriceTab('y')">Y단가</button></div>
+      <div class="seg" style="flex:0 0 36%"><button id="pm-yerim" class="on" onclick="setPriceManufacturer('yerim')">예림</button><button id="pm-hansol" onclick="setPriceManufacturer('hansol')">한솔</button></div>
+      <div class="seg" id="price-tier-seg"></div>
     </div>
+    <div class="pt-client"><span>거래처</span><select id="price-client" onchange="ptSetClient('door',this.value)"></select></div>
     <div class="pt-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="text" id="price-search" placeholder="색상명 검색" oninput="filterPriceTable()"></div>
     <div id="price-table-content"></div>
   </div>
@@ -1329,84 +1343,85 @@ const DOOR_PRICES=[
 const SHEET_W=2440,SHEET_H=1220,KERF=6;
 
 // ===== 한솔 생산도어 단가표 (2026.06.18~) =====
-// std: 표준단가 (시그니처·스페셜 = 보드매입가×2, 엔트리 = 보드매입가+최저가공비 50,000)
-// y: Y단가 (보드매입가 + 가공비 45,000) · 보드매입가는 VAT 포함 · 1,000원 단위 올림
+// std: 표준단가 (보드매입가 + 가공비 50,000 + 배송비 17,600)
+// a: A단가 (보드매입가 + 가공비 50,000) · h: H단가 (보드매입가 + 가공비 45,000)
+// 보드매입가는 VAT 포함(시그니처 69,500 · 스페셜 55,500 · 엔트리 41,500 ×1.1) · 1,000원 단위 올림
 const HANSOL_DOOR_PRICES=[
-  {name:'스모크브라운오크',cat:'시그니처',std:153000,y:122000},
-  {name:'스모크그레이오크',cat:'시그니처',std:153000,y:122000},
-  {name:'라우에리니아',cat:'시그니처',std:153000,y:122000},
-  {name:'라우에베니아',cat:'시그니처',std:153000,y:122000},
-  {name:'브레시아티크',cat:'시그니처',std:153000,y:122000},
-  {name:'엘리내추럴',cat:'시그니처',std:153000,y:122000},
-  {name:'엘리다크브라운',cat:'시그니처',std:153000,y:122000},
-  {name:'조슈아오가닉',cat:'시그니처',std:153000,y:122000},
-  {name:'앤그레이',cat:'시그니처',std:153000,y:122000},
-  {name:'몬세라트월넛',cat:'시그니처',std:153000,y:122000},
-  {name:'다다모스',cat:'시그니처',std:153000,y:122000},
-  {name:'다다포레스트',cat:'시그니처',std:153000,y:122000},
-  {name:'에버오크내추럴',cat:'시그니처',std:153000,y:122000},
-  {name:'에버오크베이지',cat:'시그니처',std:153000,y:122000},
-  {name:'에버오크토프',cat:'시그니처',std:153000,y:122000},
-  {name:'에버오크번그레이',cat:'시그니처',std:153000,y:122000},
-  {name:'조슈아라이트',cat:'시그니처',std:153000,y:122000},
-  {name:'베르겐오크',cat:'시그니처',std:153000,y:122000},
-  {name:'테네시월넛',cat:'시그니처',std:153000,y:122000},
-  {name:'테네시다크월넛',cat:'시그니처',std:153000,y:122000},
-  {name:'테네시오크',cat:'시그니처',std:153000,y:122000},
-  {name:'칼프브라운',cat:'시그니처',std:153000,y:122000},
-  {name:'칼프블랙',cat:'시그니처',std:153000,y:122000},
-  {name:'칼프그레이',cat:'시그니처',std:153000,y:122000},
-  {name:'내츄럴크랙오크',cat:'시그니처',std:153000,y:122000},
-  {name:'베이내추럴오크',cat:'시그니처',std:153000,y:122000},
-  {name:'메종라이트오크',cat:'시그니처',std:153000,y:122000},
-  {name:'플라스터화이트',cat:'시그니처',std:153000,y:122000},
-  {name:'플라스터크림',cat:'시그니처',std:153000,y:122000},
-  {name:'플라스터그레이',cat:'시그니처',std:153000,y:122000},
-  {name:'클레이크림',cat:'시그니처',std:153000,y:122000},
-  {name:'클레이포그',cat:'시그니처',std:153000,y:122000},
-  {name:'클레이샌드',cat:'시그니처',std:153000,y:122000},
-  {name:'콘크리트화이트',cat:'시그니처',std:153000,y:122000},
-  {name:'콘크리트크림',cat:'시그니처',std:153000,y:122000},
-  {name:'콘크리트샌드',cat:'시그니처',std:153000,y:122000},
-  {name:'로멘토수아',cat:'시그니처',std:153000,y:122000},
-  {name:'로멘토누아',cat:'시그니처',std:153000,y:122000},
-  {name:'페즈크림',cat:'시그니처',std:153000,y:122000},
-  {name:'페즈브라운',cat:'시그니처',std:153000,y:122000},
-  {name:'피케그레이',cat:'시그니처',std:153000,y:122000},
-  {name:'엘로이실버',cat:'시그니처',std:153000,y:122000},
-  {name:'바이브실버',cat:'시그니처',std:153000,y:122000},
-  {name:'크림화이트무',cat:'스페셜',std:123000,y:107000},
-  {name:'크림화이트유',cat:'스페셜',std:123000,y:107000},
-  {name:'퍼펙트화이트무',cat:'스페셜',std:123000,y:107000},
-  {name:'퍼펙트화이트유',cat:'스페셜',std:123000,y:107000},
-  {name:'샤인펄화이트',cat:'스페셜',std:123000,y:107000},
-  {name:'도브화이트',cat:'스페셜',std:123000,y:107000},
-  {name:'클린화이트',cat:'스페셜',std:123000,y:107000},
-  {name:'미카도화이트',cat:'스페셜',std:123000,y:107000},
-  {name:'안도크림',cat:'스페셜',std:123000,y:107000},
-  {name:'에크루그레이',cat:'스페셜',std:123000,y:107000},
-  {name:'젠화이트',cat:'스페셜',std:123000,y:107000},
-  {name:'포그그레이',cat:'스페셜',std:123000,y:107000},
-  {name:'샌드그레이무',cat:'스페셜',std:123000,y:107000},
-  {name:'샌드그레이유',cat:'스페셜',std:123000,y:107000},
-  {name:'새틴베이지',cat:'스페셜',std:123000,y:107000},
-  {name:'애쉬베이지',cat:'스페셜',std:123000,y:107000},
-  {name:'다크그레이',cat:'스페셜',std:123000,y:107000},
-  {name:'라이트그레이',cat:'스페셜',std:123000,y:107000},
-  {name:'모노그레이무',cat:'스페셜',std:123000,y:107000},
-  {name:'모노그레이유',cat:'스페셜',std:123000,y:107000},
-  {name:'로얄버건디',cat:'스페셜',std:123000,y:107000},
-  {name:'리치브라운무',cat:'스페셜',std:123000,y:107000},
-  {name:'리치브라운유',cat:'스페셜',std:123000,y:107000},
-  {name:'리유베이지',cat:'스페셜',std:123000,y:107000},
-  {name:'코멘트옐로우',cat:'스페셜',std:123000,y:107000},
-  {name:'미스트그린',cat:'스페셜',std:123000,y:107000},
-  {name:'마린블루',cat:'스페셜',std:123000,y:107000},
-  {name:'밀키화이트',cat:'엔트리',std:96000,y:91000},
-  {name:'실키화이트',cat:'엔트리',std:96000,y:91000},
-  {name:'에센셜베이지',cat:'엔트리',std:96000,y:91000},
-  {name:'듄그레이',cat:'엔트리',std:96000,y:91000},
-  {name:'그레이지',cat:'엔트리',std:96000,y:91000},
+  {name:'스모크브라운오크',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'스모크그레이오크',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'라우에리니아',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'라우에베니아',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'브레시아티크',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'엘리내추럴',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'엘리다크브라운',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'조슈아오가닉',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'앤그레이',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'몬세라트월넛',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'다다모스',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'다다포레스트',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'에버오크내추럴',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'에버오크베이지',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'에버오크토프',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'에버오크번그레이',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'조슈아라이트',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'베르겐오크',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'테네시월넛',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'테네시다크월넛',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'테네시오크',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'칼프브라운',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'칼프블랙',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'칼프그레이',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'내츄럴크랙오크',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'베이내추럴오크',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'메종라이트오크',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'플라스터화이트',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'플라스터크림',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'플라스터그레이',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'클레이크림',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'클레이포그',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'클레이샌드',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'콘크리트화이트',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'콘크리트크림',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'콘크리트샌드',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'로멘토수아',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'로멘토누아',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'페즈크림',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'페즈브라운',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'피케그레이',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'엘로이실버',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'바이브실버',cat:'시그니처',std:145000,a:127000,h:122000},
+  {name:'크림화이트무',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'크림화이트유',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'퍼펙트화이트무',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'퍼펙트화이트유',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'샤인펄화이트',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'도브화이트',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'클린화이트',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'미카도화이트',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'안도크림',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'에크루그레이',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'젠화이트',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'포그그레이',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'샌드그레이무',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'샌드그레이유',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'새틴베이지',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'애쉬베이지',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'다크그레이',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'라이트그레이',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'모노그레이무',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'모노그레이유',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'로얄버건디',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'리치브라운무',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'리치브라운유',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'리유베이지',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'코멘트옐로우',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'미스트그린',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'마린블루',cat:'스페셜',std:129000,a:112000,h:107000},
+  {name:'밀키화이트',cat:'엔트리',std:114000,a:96000,h:91000},
+  {name:'실키화이트',cat:'엔트리',std:114000,a:96000,h:91000},
+  {name:'에센셜베이지',cat:'엔트리',std:114000,a:96000,h:91000},
+  {name:'듄그레이',cat:'엔트리',std:114000,a:96000,h:91000},
+  {name:'그레이지',cat:'엔트리',std:114000,a:96000,h:91000},
 ];
 
 // ===== 필름 견적 =====
@@ -1690,6 +1705,7 @@ function saveClient(type){
 }
 function deleteClient(name,type){
   kmSetKV('clients_'+type,loadClients(type).filter(c=>c!==name));
+  ptRenameClient(type,name,null);
   refreshClientUI();refreshFilmDoorDrops();
 }
 function switchClientTab(type){
@@ -1737,6 +1753,7 @@ function saveClientEdit(i,oldName,type){
   if(idx===-1){refreshClientUI();return;}
   arr[idx]=newName;
   kmSetKV('clients_'+type,arr);
+  ptRenameClient(type,oldName,newName);
   refreshClientUI();refreshFilmDoorDrops();
 }
 function moveClient(name,type,dir){
@@ -1779,23 +1796,26 @@ document.addEventListener('click',e=>{
 });
 
 // ===== 도어 =====
-let doorGroups=[],doorCnt=0,doorGrade='std'; // 'std' 표준단가 | 'y' Y단가
-const GRADE_LABEL={std:'표준단가',y:'Y단가'};
-function setDoorGrade(k){
-  doorGrade=k;
-  ['std','y'].forEach(n=>{
-    const b=document.getElementById(`grade-btn-${n}`);if(b)b.classList.toggle('on',n===k);
+let doorGroups=[],doorCnt=0;
+// ===== 단가 종류 (제조사마다 다름) =====
+const PRICE_TIERS={yerim:[['std','표준단가'],['y','Y단가']],hansol:[['std','표준단가'],['a','A단가'],['h','H단가']]};
+const tierLabel=(brand,k)=>((PRICE_TIERS[brand]||[]).find(t=>t[0]===k)||[])[1]||'';
+let doorTier={yerim:'std',hansol:'std'}; // 견적서에 적용할 단가 (내부용)
+function setDoorTier(brand,k){doorTier[brand]=k;renderDoorGroups();updateDoorTotals();}
+function renderDoorTierButtons(){
+  ['yerim','hansol'].forEach(b=>{
+    const el=document.getElementById('door-tier-'+b);if(!el)return;
+    el.innerHTML=PRICE_TIERS[b].map(([k,l])=>`<button type="button" class="${doorTier[b]===k?'on':''}" onclick="setDoorTier('${b}','${k}')">${l}</button>`).join('');
   });
-  renderDoorGroups();
 }
 function getUnitPrice(brand,key){
   if(brand==='hansol'){
     const p=HANSOL_DOOR_PRICES.find(p=>p.name===key);
-    return p?p[doorGrade]:0;
+    return p?p[doorTier.hansol]:0;
   }
   const[name,type]=key.split('|');
   const p=DOOR_PRICES.find(p=>p.name===name&&p.type===type)||DOOR_PRICES.find(p=>p.name===name);
-  return p?p[doorGrade]:0;
+  return p?p[doorTier.yerim]:0;
 }
 function addDoorGroup(){
   const key=DOOR_PRICES[0].name+'|'+DOOR_PRICES[0].type;
@@ -1809,9 +1829,9 @@ function searchDoorColors(q,brand){
   q=(q||'').trim().toLowerCase();
   if(!q)return[];
   if(brand==='hansol'){
-    return HANSOL_DOOR_PRICES.filter(p=>p.name.toLowerCase().includes(q)).slice(0,30).map(p=>({name:p.name,label:p.cat}));
+    return HANSOL_DOOR_PRICES.filter(p=>p.name.toLowerCase().includes(q)).slice(0,30).map(p=>({name:p.name,label:p.cat+(ptStock('hansol').has(p.name)?' · 재고':'')}));
   }
-  return DOOR_PRICES.filter(p=>p.name.toLowerCase().includes(q)).slice(0,30).map(p=>({name:p.name,type:p.type,label:p.type}));
+  return DOOR_PRICES.filter(p=>p.name.toLowerCase().includes(q)).slice(0,30).map(p=>({name:p.name,type:p.type,label:p.type+(ptStock('yerim').has(p.name+'|'+p.type)?' · 재고':'')}));
 }
 function onDoorColorSearch(gi,q){
   const box=document.getElementById('door-search-results-'+gi);if(!box)return;
@@ -1850,6 +1870,8 @@ function updateDoorTotals(){
   const el=document.getElementById('door-total');if(el)el.textContent=total.toLocaleString()+' 원';
 }
 function renderDoorGroups(){
+  renderDoorTierButtons();
+  const stY=ptStock('yerim'),stH=ptStock('hansol');
   const wrap=document.getElementById('door-items-wrap');if(!wrap)return;
   if(!doorGroups.length){wrap.innerHTML='<div style="text-align:center;padding:16px;color:var(--gray-500);font-size:13px">+ 색상 추가를 눌러 시작하세요</div>';updateDoorTotals();return;}
   wrap.innerHTML=doorGroups.map((g,gi)=>{
@@ -1865,8 +1887,8 @@ function renderDoorGroups(){
     const unit=getUnitPrice(brand,g.key),groupAmt=Math.round((g.amount||0)*unit);
     const AMOUNTS=[0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0];
     const colorOptions=brand==='hansol'
-      ?HANSOL_DOOR_PRICES.map(p=>`<option value="${p.name}"${p.name===g.key?' selected':''}>${p.name} (${p.cat})</option>`).join('')
-      :DOOR_PRICES.map(p=>`<option value="${p.name}|${p.type}"${(p.name+'|'+p.type)===g.key?' selected':''}>${p.name} (${p.type})</option>`).join('');
+      ?HANSOL_DOOR_PRICES.map(p=>`<option value="${p.name}"${p.name===g.key?' selected':''}>${p.name} (${p.cat})${stH.has(p.name)?' · 재고':''}</option>`).join('')
+      :DOOR_PRICES.map(p=>`<option value="${p.name}|${p.type}"${(p.name+'|'+p.type)===g.key?' selected':''}>${p.name} (${p.type})${stY.has(p.name+'|'+p.type)?' · 재고':''}</option>`).join('');
     const brandLabel=brand==='hansol'?'한솔':'예림';
     const body=g.open?`
       <div class="dg-body">
@@ -1958,112 +1980,74 @@ function doDoorPrint(){
   win.document.close();
 }
 
-// ===== 공유용 단가표 (수정됨: 고아 코드 블록 제거) =====
-function showShareView(){
-  if(priceManufacturer==='hansol'){showHansolShareView();return;}
-  const gradeKey=priceTabGrade;
-  const catOrder=['매트','글로시','PP','프레스티지 PP','프레스티지 아크릴','PVC (데코보드)','PET','MFB','UV','방염보드(MFB/MFC)'];
-  const catLabel={'매트':'매트 도어','글로시':'글로시 도어','PP':'PP 우드/키친','프레스티지 PP':'프레스티지 PP','프레스티지 아크릴':'프레스티지 아크릴','PVC (데코보드)':'PVC 데코보드','PET':'PET (메탈·특수)','MFB':'MFB / LPM','UV':'UV 코팅','방염보드(MFB/MFC)':'방염 처리'};
-  const catColor={'매트':'#1B3A5C','글로시':'#1B3A5C','PP':'#2F7D4F','프레스티지 PP':'#1A5080','프레스티지 아크릴':'#7B5EA7','PVC (데코보드)':'#5A6B7A','PET':'#5A6A7A','MFB':'#555E6E','UV':'#2A7A5A','방염보드(MFB/MFC)':'#C04010'};
-
-  const groups={};
-  priceVisibleFor('yerim',gradeKey).forEach(p=>{
-    const cat=p.cat||'기타';
-    if(!groups[cat])groups[cat]=[];
-    groups[cat].push(p);
-  });
-
-  const sections=catOrder.filter(c=>groups[c]).map(cat=>{
-    const items=groups[cat],color=catColor[cat]||'#1B3A5C',label=catLabel[cat]||cat;
-    const rows=items.map((p,i)=>`
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 7px;background:${i%2===0?'#fff':'#FAFBFC'};border-bottom:1px solid #EDE8E0;gap:4px;">
-        <span style="font-size:10.5px;color:#16232E;font-weight:500;line-height:1.25;word-break:keep-all;flex:1">${p.name}${p.type&&p.type!=='일반'?` <span style='font-size:9px;color:#7A8896'>[${p.type}]</span>`:''}</span>
-        <span style="font-size:11.5px;font-weight:800;color:${color};white-space:nowrap;flex-shrink:0">${p[gradeKey].toLocaleString()}<span style="font-size:9px;font-weight:400;color:#bbb">원</span></span>
-      </div>`).join('');
+// ===== 공유용 단가표 (예림·한솔·필름 공통) =====
+// 선택한 거래처의 공개 품목만, 재고 보유 품목은 '재고' 표시
+const STK_SHARE='<span style="display:inline-block;font-size:8.5px;font-weight:800;color:#fff;background:#1E9E5A;border-radius:3px;padding:0 3px;margin-right:3px;vertical-align:1px">재고</span>';
+function ptShareHTML(brand){
+  const B=PRICE_BRANDS[brand],tier=B.tiers?priceTier[brand]:null,client=ptClient[B.scope];
+  const stock=ptStock(brand),tierTxt=tier?tierLabel(brand,tier):'';
+  const groups={};let anyStock=false;
+  ptVisibleItems(brand).forEach(p=>{(groups[p.cat||'기타']=groups[p.cat||'기타']||[]).push(p);});
+  const sections=B.catOrder.filter(c=>groups[c]).map(cat=>{
+    const items=groups[cat],color=B.catColor[cat]||'#1B3A5C',label=B.catLabel[cat]||cat;
+    const rows=items.map((p,i)=>{
+      const st=stock.has(B.id(p));if(st)anyStock=true;
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 7px;background:${st?'#EFFAF3':(i%2===0?'#fff':'#FAFBFC')};border-bottom:1px solid #EDE8E0;gap:4px;">
+        <span style="font-size:10.5px;color:#16232E;font-weight:500;line-height:1.25;word-break:keep-all;flex:1">${st?STK_SHARE:''}${p.name}${B.showType&&p.type&&p.type!=='일반'?` <span style='font-size:9px;color:#7A8896'>[${p.type}]</span>`:''}</span>
+        <span style="font-size:11.5px;font-weight:800;color:${color};white-space:nowrap;flex-shrink:0">${B.price(p,tier).toLocaleString()}<span style="font-size:9px;font-weight:400;color:#bbb">원</span></span>
+      </div>`;}).join('');
+    const extra=brand==='film'?` · 절단 ${Math.min(...items.map(p=>(MODEL_DB[p.key]||{}).cut||0)).toLocaleString()}원~`:'';
     return `<div style="margin-bottom:8px;border-radius:7px;overflow:hidden;border:1.5px solid #C7D0D9;break-inside:avoid">
       <div style="background:${color};padding:4px 8px;display:flex;align-items:center;justify-content:space-between">
         <span style="font-size:10.5px;font-weight:800;color:white">${label}</span>
-        <span style="font-size:9.5px;color:rgba(255,255,255,.75)">${items.length}종</span>
+        <span style="font-size:9.5px;color:rgba(255,255,255,.75)">${items.length}종${extra}</span>
       </div>${rows}</div>`;
   }).join('');
-
   const now=new Date();
   const dateStr=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
-
-  const html=`<div style="padding:12px 12px 20px;background:white;font-family:'Noto Sans KR',sans-serif;">
-    <div style="text-align:center;padding-bottom:10px;margin-bottom:12px;border-bottom:2.5px solid #E8630A">
-      <div style="font-size:15px;font-weight:900;color:#1B3A5C;letter-spacing:1.5px">예림 생산도어 단가표 <span style="font-size:12px;color:#E8630A">(${GRADE_LABEL[gradeKey]})</span></div>
+  const legend=anyStock?`<div style="margin-top:6px;font-size:10px;color:#1E7A48;line-height:1.6">${STK_SHARE} ㈜오션메이드 재고 보유 품목 · 빠른 출고 가능</div>`:'';
+  const foot=brand==='film'
+    ?`<div style="margin-top:10px;padding:8px 10px;background:#FEF6EE;border-radius:7px;border:1.5px solid #E8C8A0">
+        <div style="font-size:10px;color:#3D6E8F;line-height:1.8">📋 단가는 <b>롤 단가(25m 단위)</b> 기준 · 25m 미만 절단 시 별도 단가 적용<br>📞 041-534-7475 · 기업은행 332-135674-04-011 (㈜오션메이드)</div>
+      </div>
+      <div style="margin-top:6px;padding:8px 10px;background:#FFF0E8;border-radius:7px;border:1.5px solid #E8A070">
+        <div style="font-size:10px;color:#C04010;line-height:1.8">🔥 <b>방염 처리 시 +3,900원/m</b> 추가 적용</div>
+      </div>`
+    :`<div style="margin-top:10px;padding:8px 10px;background:#EEF8EE;border-radius:7px;border:1.5px solid #A8D4A8">
+        <div style="font-size:10px;color:#2A6A2A;line-height:1.8">✅ <b>단가는 부가세 포함</b> · ${tierTxt} · 제로조인트 기준<br>📞 041-534-7475 · 기업은행 332-135674-04-011 (㈜오션메이드)</div>
+      </div>`;
+  return `<div style="padding:12px 12px 20px;background:white;font-family:'Noto Sans KR',sans-serif;">
+    <div style="text-align:center;padding-bottom:10px;margin-bottom:12px;border-bottom:2.5px solid ${B.shareLine}">
+      <div style="font-size:15px;font-weight:900;color:#1B3A5C;letter-spacing:1.5px">${B.title}${tierTxt?` <span style="font-size:12px;color:#E8630A">(${tierTxt})</span>`:''}</div>
+      ${client?`<div style="font-size:12px;font-weight:800;color:#E8630A;margin-top:3px">${kmEsc(client)} 전용</div>`:''}
       <div style="display:flex;justify-content:center;gap:8px;margin-top:4px;flex-wrap:wrap">
         <span style="font-size:10px;color:#5A6B7A">기준일: ${dateStr}</span>
         <span style="font-size:10px;color:#ccc">|</span>
-        <span style="font-size:10px;font-weight:700;color:#2A6A2A">✅ VAT 포함</span>
+        <span style="font-size:10px;font-weight:700;color:#2A6A2A">VAT 포함</span>
         <span style="font-size:10px;color:#ccc">|</span>
         <span style="font-size:10px;color:#5A6B7A">㈜오션메이드</span>
       </div>
     </div>
-    <div style="columns:2;column-gap:8px;column-fill:balance">${sections}</div>
-    <div style="margin-top:10px;padding:8px 10px;background:#EEF8EE;border-radius:7px;border:1.5px solid #A8D4A8">
-      <div style="font-size:10px;color:#2A6A2A;line-height:1.8">✅ <b>단가는 부가세 포함</b> 가격입니다 · ${GRADE_LABEL[gradeKey]} · 제로조인트 기준<br>📞 041-534-7475 · 기업은행 332-135674-04-011 (㈜오션메이드)</div>
-    </div>
+    ${sections?`<div style="columns:2;column-gap:8px;column-fill:balance">${sections}</div>`:'<div style="text-align:center;padding:30px;color:#7A8896;font-size:12px">공개된 품목이 없습니다</div>'}
+    ${legend}${foot}
   </div>`;
-
-  document.getElementById('share-parea').innerHTML=html;
+}
+function showShareView(){
+  document.getElementById('share-parea').innerHTML=ptShareHTML(ptBrandNow('door'));
   document.getElementById('share-ovl').classList.add('show');
   document.getElementById('share-ovl').scrollTop=0;
 }
-
-function showHansolShareView(){
-  const hansolKey=priceTabGrade,hansolLabel=GRADE_LABEL[hansolKey];
-  const catOrder=['시그니처','스페셜','엔트리'];
-  const catColor={'시그니처':'#1B3A5C','스페셜':'#7B5EA7','엔트리':'#2F7D4F'};
-  const groups={};
-  priceVisibleFor('hansol',hansolKey).forEach(p=>{
-    const cat=p.cat||'기타';
-    if(!groups[cat])groups[cat]=[];
-    groups[cat].push(p);
-  });
-  const sections=catOrder.filter(c=>groups[c]).map(cat=>{
-    const items=groups[cat],color=catColor[cat]||'#1B3A5C';
-    const rows=items.map((p,i)=>`
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 7px;background:${i%2===0?'#fff':'#FAFBFC'};border-bottom:1px solid #EDE8E0;gap:4px;">
-        <span style="font-size:10.5px;color:#16232E;font-weight:500;line-height:1.25;word-break:keep-all;flex:1">${p.name}</span>
-        <span style="font-size:11.5px;font-weight:800;color:${color};white-space:nowrap;flex-shrink:0">${p[hansolKey].toLocaleString()}<span style="font-size:9px;font-weight:400;color:#bbb">원</span></span>
-      </div>`).join('');
-    return `<div style="margin-bottom:8px;border-radius:7px;overflow:hidden;border:1.5px solid #C7D0D9;break-inside:avoid">
-      <div style="background:${color};padding:4px 8px;display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:10.5px;font-weight:800;color:white">${cat}</span>
-        <span style="font-size:9.5px;color:rgba(255,255,255,.75)">${items.length}종</span>
-      </div>${rows}</div>`;
-  }).join('');
-
-  const now=new Date();
-  const dateStr=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
-
-  const html=`<div style="padding:12px 12px 20px;background:white;font-family:'Noto Sans KR',sans-serif;">
-    <div style="text-align:center;padding-bottom:10px;margin-bottom:12px;border-bottom:2.5px solid #1B3A5C">
-      <div style="font-size:15px;font-weight:900;color:#1B3A5C;letter-spacing:1.5px">한솔 생산도어 단가표 <span style="font-size:12px;color:#E8630A">(${hansolLabel})</span></div>
-      <div style="display:flex;justify-content:center;gap:8px;margin-top:4px;flex-wrap:wrap">
-        <span style="font-size:10px;color:#5A6B7A">기준일: ${dateStr}</span>
-        <span style="font-size:10px;color:#ccc">|</span>
-        <span style="font-size:10px;font-weight:700;color:#2A6A2A">✅ VAT 포함</span>
-        <span style="font-size:10px;color:#ccc">|</span>
-        <span style="font-size:10px;color:#5A6B7A">㈜오션메이드</span>
-      </div>
-    </div>
-    <div style="columns:2;column-gap:8px;column-fill:balance">${sections}</div>
-    <div style="margin-top:10px;padding:8px 10px;background:#EEF8EE;border-radius:7px;border:1.5px solid #A8D4A8">
-      <div style="font-size:10px;color:#2A6A2A;line-height:1.8">✅ <b>단가는 부가세 포함</b> · ${hansolLabel} · 제로조인트 기준<br>📞 041-534-7475 · 기업은행 332-135674-04-011 (㈜오션메이드)</div>
-    </div>
-  </div>`;
-
-  document.getElementById('share-parea').innerHTML=html;
-  document.getElementById('share-ovl').classList.add('show');
-  document.getElementById('share-ovl').scrollTop=0;
+function showHansolShareView(){showShareView();}
+function showFilmShareView(){
+  document.getElementById('film-share-parea').innerHTML=ptShareHTML('film');
+  document.getElementById('film-share-ovl').classList.add('show');
+  document.getElementById('film-share-ovl').scrollTop=0;
 }
-
 function shareFileBaseName(){
-  return (priceManufacturer==='hansol'?'한솔':'예림')+'_생산도어_단가표_'+GRADE_LABEL[priceTabGrade];
+  const b=ptBrandNow('door'),c=ptClient.door;
+  return PRICE_BRANDS[b].short+'_생산도어_단가표_'+tierLabel(b,priceTier[b])+(c?'_'+c:'');
 }
+function filmShareFileBaseName(){return '예림_인테리어필름_단가표'+(ptClient.film?'_'+ptClient.film:'');}
 
 // ===== 단가표 이미지/PDF 저장 =====
 async function saveDoorQuoteAsImage(btnEl){
@@ -2118,56 +2102,6 @@ async function saveShareAsImage(elId,baseName,btnEl){
   }
 }
 
-// ===== 필름 공유용 단가표 =====
-function showFilmShareView(){
-  const now=new Date();
-  const dateStr=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
-  let sections='';
-  FILM_PRICE_SECTIONS.forEach(sec=>{
-    const items=[];
-    sec.keys.forEach(k=>{const db=MODEL_DB[k];if(!db)return;db.models.forEach(m=>items.push({model:m,roll:db.roll,cut:db.cut}));});
-    if(!items.length)return;
-    const color=sec.color;
-    const rows=items.map((it,i)=>`
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 7px;background:${i%2===0?'#fff':'#FAFBFC'};border-bottom:1px solid #EDE8E0;gap:4px;">
-        <span style="font-size:10.5px;color:#16232E;font-weight:500;line-height:1.25;word-break:keep-all;flex:1">${it.model}</span>
-        <span style="font-size:11px;font-weight:800;color:${color};white-space:nowrap;flex-shrink:0">${it.roll.toLocaleString()}<span style="font-size:9px;font-weight:400;color:#bbb">원</span></span>
-      </div>`).join('');
-    sections+=`
-      <div style="margin-bottom:8px;border-radius:7px;overflow:hidden;border:1.5px solid #C7D0D9;break-inside:avoid">
-        <div style="background:${color};padding:4px 8px;display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:10.5px;font-weight:800;color:white">${sec.label}</span>
-          <span style="font-size:9.5px;color:rgba(255,255,255,.75)">${items.length}종 · 절단 ${items[0].cut.toLocaleString()}원~</span>
-        </div>${rows}
-      </div>`;
-  });
-  const html=`
-    <div style="padding:12px 12px 20px;background:white;font-family:'Noto Sans KR',sans-serif;">
-      <div style="text-align:center;padding-bottom:10px;margin-bottom:12px;border-bottom:2.5px solid #E8630A">
-        <div style="font-size:15px;font-weight:900;color:#1B3A5C;letter-spacing:1.5px">예림 인테리어필름 단가표</div>
-        <div style="display:flex;justify-content:center;gap:8px;margin-top:4px;flex-wrap:wrap">
-          <span style="font-size:10px;color:#5A6B7A">기준일: ${dateStr}</span>
-          <span style="font-size:10px;color:#ccc">|</span>
-          <span style="font-size:10px;color:#5A6B7A">VAT 포함</span>
-          <span style="font-size:10px;color:#ccc">|</span>
-          <span style="font-size:10px;color:#5A6B7A">㈜오션메이드</span>
-        </div>
-      </div>
-      <div style="columns:2;column-gap:8px;column-fill:balance">${sections}</div>
-      <div style="margin-top:10px;padding:8px 10px;background:#FEF6EE;border-radius:7px;border:1.5px solid #E8C8A0">
-        <div style="font-size:10px;color:#3D6E8F;line-height:1.8">
-          📋 단가는 <b>롤 단가(25m 단위)</b> 기준 · 25m 미만 절단 시 별도 단가 적용<br>
-          📞 041-534-7475 · 기업은행 332-135674-04-011 (㈜오션메이드)
-        </div>
-      </div>
-      <div style="margin-top:6px;padding:8px 10px;background:#FFF0E8;border-radius:7px;border:1.5px solid #E8A070">
-        <div style="font-size:10px;color:#C04010;line-height:1.8">🔥 <b>방염 처리 시 +3,900원/m</b> 추가 적용</div>
-      </div>
-    </div>`;
-  document.getElementById('film-share-parea').innerHTML=html;
-  document.getElementById('film-share-ovl').classList.add('show');
-  document.getElementById('film-share-ovl').scrollTop=0;
-}
 // ===== 필름 단가표 탭 =====
 const FILM_PRICE_SECTIONS=[
   {key:'solid',label:'솔리드 계열',color:'#1B3A5C',keys:['HSM','HPA','HA','HS']},
@@ -2183,48 +2117,18 @@ const FILM_PRICE_SECTIONS=[
 let filmSectionOpen={};
 function toggleFilmSection(key){filmSectionOpen[key]=!filmSectionOpen[key];renderFilmPriceTable();}
 function toggleAllFilmSections(open){if(open===undefined)open=!FILM_PRICE_SECTIONS.every(s=>filmSectionOpen[s.key]);FILM_PRICE_SECTIONS.forEach(s=>filmSectionOpen[s.key]=open);renderFilmPriceTable();}
-function renderFilmPriceTable(){
-  const el=document.getElementById('film-price-content');if(!el)return;
-  const q=(document.getElementById('fp-search')?.value||'').toLowerCase();
-  const hasSearch=q.length>0;
-  const allBtn=document.getElementById('fp-allbtn');
-  if(allBtn)allBtn.textContent=FILM_PRICE_SECTIONS.every(s=>filmSectionOpen[s.key])?'모두 접기':'모두 펼치기';
-  let html='';
-  FILM_PRICE_SECTIONS.forEach(sec=>{
-    const allItems=[];
-    sec.keys.forEach(k=>{
-      const db=MODEL_DB[k];if(!db)return;
-      db.models.forEach(m=>{if(!q||m.toLowerCase().includes(q)||db.name.includes(q))allItems.push({key:k,catName:db.name,model:m,roll:db.roll,cut:db.cut});});
-    });
-    if(!allItems.length)return;
-    const isOpen=hasSearch||filmSectionOpen[sec.key];
-    html+=`<div class="pt-sec${isOpen?' open':''}">
-      <div class="pt-head" onclick="toggleFilmSection('${sec.key}')">
-        <span class="pt-dot" style="background:${sec.color}"></span><span class="pt-name">${sec.label}</span><span class="pt-cnt">${allItems.length}종</span>
-        <span class="pt-from">롤 ${Math.min(...allItems.map(i=>i.roll)).toLocaleString()}원~</span><svg class="pt-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-      </div>
-      ${isOpen?sec.keys.map(k=>{
-        const db=MODEL_DB[k];if(!db)return'';
-        const models=db.models.filter(m=>!q||m.toLowerCase().includes(q)||db.name.includes(q));
-        if(!models.length)return'';
-        return `<div class="pt-sub"><span>${db.name}</span><span>롤 ${db.roll.toLocaleString()} · 절단 ${db.cut.toLocaleString()}</span></div>`+
-          models.map(m=>`<div class="pt-row"><span class="n">${m}</span><span class="p">${db.roll.toLocaleString()}<small>/롤</small></span></div>`).join('');
-      }).join(''):''}
-    </div>`;
-  });
-  if(!html)html='<div class="pt-empty">검색 결과가 없습니다</div>';
-  html+=`<div class="pt-note"><b>롤단가</b> 25m 단위 · <b>절단단가</b> 25m 미만 · 1롤=25m · VAT 포함<br><b>방염 +3,900원/m</b> · 견적서에서 품목별 방염을 켜면 자동 계산</div>`;
-  el.innerHTML=html;
-}
 
-// ===== 도어 단가표 탭 =====
-let priceTabGrade='std'; // 'std' 표준단가 | 'y' Y단가
+// ===== 단가표 탭 상태 =====
 let priceManufacturer='yerim'; // 'yerim' | 'hansol'
+let priceTier={yerim:'std',hansol:'std'}; // 단가표·공유 이미지에 보여줄 단가
 let doorPriceSectionOpen={'매트':true,'글로시':false,'PP':false,'프레스티지 PP':false,'프레스티지 아크릴':false,'PVC (데코보드)':false,'PET':false,'MFB':false,'UV':false,'방염보드(MFB/MFC)':false};
 let hansolPriceSectionOpen={'시그니처':true,'스페셜':false,'엔트리':false};
+let ptClient={door:'',film:''}; // 단가표에서 고른 거래처 ('' = 공통)
+let ptEdit=null;                // 편집 중이면 {brand,scope,client,hid:Set,stock:Set}
+let ptShowHidden={};            // 닫힌 품목도 회색으로 보기
 
 function setPriceManufacturer(m){
-  priceManufacturer=m;
+  priceManufacturer=m;ptEdit=null;
   document.getElementById('pm-yerim').classList.toggle('on',m==='yerim');
   document.getElementById('pm-hansol').classList.toggle('on',m==='hansol');
   const title=document.getElementById('price-tab-title'),sub=document.getElementById('price-tab-sub');
@@ -2241,126 +2145,230 @@ function setPriceManufacturer(m){
   document.getElementById('price-search').value='';
   renderPriceTable();
 }
-function setPriceTab(g){
-  priceTabGrade=g;
-  document.getElementById('pt-g1').classList.toggle('on',g==='std');
-  document.getElementById('pt-g2').classList.toggle('on',g==='y');
-  renderPriceTable();
-}
+function setPriceTab(g){priceTier[ptBrandNow('door')]=g;renderPriceTable();}
 function filterPriceTable(){renderPriceTable();}
 function toggleDoorPriceSection(cat){doorPriceSectionOpen[cat]=!doorPriceSectionOpen[cat];renderPriceTable();}
 function toggleHansolPriceSection(cat){hansolPriceSectionOpen[cat]=!hansolPriceSectionOpen[cat];renderPriceTable();}
+
 // ===== 단가표 브랜드 설정 =====
+function filmPriceItems(){
+  const out=[];
+  FILM_PRICE_SECTIONS.forEach(sec=>sec.keys.forEach(k=>{
+    const db=MODEL_DB[k];if(!db)return;
+    db.models.forEach(m=>out.push({name:m,key:k,cat:sec.key,sub:k}));
+  }));
+  return out;
+}
 const PRICE_BRANDS={
   yerim:{
+    scope:'door',title:'예림 생산도어 단가표',short:'예림',shareLine:'#E8630A',tiers:true,
     list:()=>DOOR_PRICES,
     id:p=>p.name+'|'+p.type,
     catOrder:['매트','글로시','PP','프레스티지 PP','프레스티지 아크릴','PVC (데코보드)','PET','MFB','UV','방염보드(MFB/MFC)'],
     catLabel:{'매트':'매트 도어','글로시':'글로시 도어','PP':'PP 우드/키친','프레스티지 PP':'프레스티지 PP','프레스티지 아크릴':'프레스티지 아크릴','PVC (데코보드)':'PVC 데코보드','PET':'PET (메탈·특수)','MFB':'MFB / LPM','UV':'UV 코팅','방염보드(MFB/MFC)':'방염 처리'},
     catColor:{'매트':'#1B3A5C','글로시':'#1B3A5C','PP':'#2F7D4F','프레스티지 PP':'#1A5080','프레스티지 아크릴':'#7B5EA7','PVC (데코보드)':'#5A6B7A','PET':'#5A6A7A','MFB':'#555E6E','UV':'#2A7A5A','방염보드(MFB/MFC)':'#C04010'},
-    sectionOpen:()=>doorPriceSectionOpen,toggleFn:'toggleDoorPriceSection',fromSuffix:'원~',showType:true,
-    footer:'📐 원판 2440×1220mm · SUPER 레이저도어 · 2025.06.15~'
+    sectionOpen:()=>doorPriceSectionOpen,price:(p,t)=>p[t],unit:'원',fromSuffix:'원~',showType:true,
+    note:'원판 2440×1220mm · SUPER 레이저도어 · 2025.06.15~'
   },
   hansol:{
+    scope:'door',title:'한솔 생산도어 단가표',short:'한솔',shareLine:'#1B3A5C',tiers:true,
     list:()=>HANSOL_DOOR_PRICES,
     id:p=>p.name,
     catOrder:['시그니처','스페셜','엔트리'],
     catLabel:{},
     catColor:{'시그니처':'#1B3A5C','스페셜':'#7B5EA7','엔트리':'#2F7D4F'},
-    sectionOpen:()=>hansolPriceSectionOpen,toggleFn:'toggleHansolPriceSection',fromSuffix:'원',showType:false,
-    footer:'📐 제로조인트 기준 · 한솔 생산도어 · 2026.06.18~'
+    sectionOpen:()=>hansolPriceSectionOpen,price:(p,t)=>p[t],unit:'원',fromSuffix:'원',showType:false,
+    note:'제로조인트 기준 · 한솔 생산도어 · 2026.06.18~'
+  },
+  film:{
+    scope:'film',title:'예림 인테리어필름 단가표',short:'필름',shareLine:'#E8630A',tiers:false,
+    list:filmPriceItems,
+    id:p=>p.key+'|'+p.name,
+    catOrder:FILM_PRICE_SECTIONS.map(s=>s.key),
+    catLabel:Object.fromEntries(FILM_PRICE_SECTIONS.map(s=>[s.key,s.label])),
+    catColor:Object.fromEntries(FILM_PRICE_SECTIONS.map(s=>[s.key,s.color])),
+    sectionOpen:()=>filmSectionOpen,price:p=>(MODEL_DB[p.key]||{}).roll||0,unit:'/롤',fromPrefix:'롤 ',fromSuffix:'원~',showType:false,sub:true,
+    note:'<b>롤단가</b> 25m 단위 · <b>절단단가</b> 25m 미만 · 1롤=25m · VAT 포함<br><b>방염 +3,900원/m</b> · 견적서에서 품목별 방염을 켜면 자동 계산'
   }
 };
+function ptBrandNow(scope){return scope==='film'?'film':(priceManufacturer==='hansol'?'hansol':'yerim');}
+function ptRender(brand){brand==='film'?renderFilmPriceTable():renderPriceTable();}
 
-// ===== Y단가 공개 품목 (예림·한솔) =====
-// 공유값 '<브랜드>_y_hidden' = Y단가 단가표에서 닫아 둔 품목 목록 (모든 직원 공통, 관리자만 편집)
-// 예림은 '이름|종류', 한솔은 '이름'으로 저장
-let yEdit=null; // 편집 중이면 {brand, hid:Set}
-const yHiddenKey=brand=>brand+'_y_hidden';
-function yHidden(brand){const v=(KM.state&&KM.state.kv||{})[yHiddenKey(brand)];return new Set(Array.isArray(v)?v:[]);}
-function priceVisibleFor(brand,key){
-  const B=PRICE_BRANDS[brand],all=B.list().slice();
-  if(key!=='y')return all;
-  const hid=yHidden(brand);
-  return all.filter(p=>!hid.has(B.id(p)));
+// ===== 거래처별 공개 품목 · 재고 표시 (공유값) =====
+// 'vis:<door|film>:<거래처>' = {브랜드:[닫은 품목 id…]}  ('vis:door:' = 공통)
+// 'stock:<yerim|hansol|film>' = [재고 보유 품목 id…]  (회사 공통)
+// 품목 id: 예림 '이름|종류', 한솔 '이름', 필름 '품목군|품번'
+const ptKV=k=>(KM.state&&KM.state.kv||{})[k];
+const ptVisKey=(scope,client)=>'vis:'+scope+':'+(client||'');
+function ptOwnList(scope,client,brand){const o=ptKV(ptVisKey(scope,client));return o&&Array.isArray(o[brand])?o[brand]:null;}
+function ptHasOwn(brand,client){return !!(client&&ptOwnList(PRICE_BRANDS[brand].scope,client,brand));}
+function ptHasAnyOwn(scope,client){const o=ptKV(ptVisKey(scope,client));return !!(o&&Object.values(o).some(Array.isArray));}
+function ptHidden(brand,client){
+  const scope=PRICE_BRANDS[brand].scope;
+  if(client===undefined)client=ptClient[scope];
+  let l=client?ptOwnList(scope,client,brand):null;
+  if(!l)l=ptOwnList(scope,'',brand);
+  if(!l&&brand!=='film'){const old=ptKV(brand+'_y_hidden');if(Array.isArray(old))l=old;} // 예전 Y단가 공개 설정 이어받기
+  return new Set(l||[]);
 }
-function startYEdit(){
-  if(!mgIsAdmin()){kmToast('공개 품목은 관리자만 바꿀 수 있습니다.',true);return}
-  yEdit={brand:priceManufacturer,hid:yHidden(priceManufacturer)};renderPriceTable();
+function ptStock(brand){const v=ptKV('stock:'+brand);return new Set(Array.isArray(v)?v:[]);}
+function ptVisibleItems(brand,client){const B=PRICE_BRANDS[brand],hid=ptHidden(brand,client);return B.list().filter(p=>!hid.has(B.id(p)));}
+function ptSetClient(scope,v){ptClient[scope]=v||'';ptEdit=null;ptRender(ptBrandNow(scope));}
+function ptRenameClient(scope,oldN,newN){
+  const o=ptKV(ptVisKey(scope,oldN));
+  if(o&&newN)kmSetKV(ptVisKey(scope,newN),o);
+  if(o)kmSetKV(ptVisKey(scope,oldN),null);
+  if(ptClient[scope]===oldN)ptClient[scope]=newN||'';
 }
-function cancelYEdit(){yEdit=null;renderPriceTable();}
-function toggleYItem(i){
-  if(!yEdit)return;
-  const B=PRICE_BRANDS[yEdit.brand],p=B.list()[i];if(!p)return;
-  const id=B.id(p);yEdit.hid.has(id)?yEdit.hid.delete(id):yEdit.hid.add(id);renderPriceTable();
+function ptClientOptions(scope){
+  const cur=ptClient[scope],list=kmClients(scope);
+  if(cur&&!list.includes(cur))list.unshift(cur);
+  return `<option value="">공통 (거래처 지정 안 함)</option>`+list.map(c=>`<option value="${kmEsc(c)}"${c===cur?' selected':''}>${kmEsc(c)}${ptHasAnyOwn(scope,c)?' · 따로 설정':''}</option>`).join('');
 }
-function setYCat(ci,open){
-  if(!yEdit)return;
-  const B=PRICE_BRANDS[yEdit.brand],cat=B.catOrder[ci];
-  B.list().filter(p=>(p.cat||'기타')===cat).forEach(p=>open?yEdit.hid.delete(B.id(p)):yEdit.hid.add(B.id(p)));
-  renderPriceTable();
+function ptStartEdit(brand){
+  if(!mgIsAdmin()){kmToast('공개 품목·재고 표시는 관리자만 바꿀 수 있습니다.',true);return}
+  const scope=PRICE_BRANDS[brand].scope;
+  ptEdit={brand,scope,client:ptClient[scope],hid:ptHidden(brand),stock:ptStock(brand)};
+  ptRender(brand);
 }
-async function saveYEdit(){
-  if(!yEdit)return;
-  const B=PRICE_BRANDS[yEdit.brand],ids=new Set(B.list().map(B.id));
-  const list=[...yEdit.hid].filter(n=>ids.has(n));
-  if(list.length===ids.size){alert('최소 한 품목은 공개해야 합니다.');return}
-  const key=yHiddenKey(yEdit.brand);
-  yEdit=null;
-  const req=kmSetKV(key,list); // 화면용 값은 바로 바뀜
-  renderPriceTable();
-  const ok=await req;
-  if(ok)kmToast('Y단가 공개 품목을 저장했습니다.');
+function ptCancelEdit(){const b=ptEdit&&ptEdit.brand;ptEdit=null;if(b)ptRender(b);}
+function ptToggleItem(i){
+  if(!ptEdit)return;
+  const B=PRICE_BRANDS[ptEdit.brand],p=B.list()[i];if(!p)return;
+  const id=B.id(p);ptEdit.hid.has(id)?ptEdit.hid.delete(id):ptEdit.hid.add(id);ptRender(ptEdit.brand);
+}
+function ptToggleStock(i,ev){
+  if(ev)ev.stopPropagation();
+  if(!ptEdit)return;
+  const B=PRICE_BRANDS[ptEdit.brand],p=B.list()[i];if(!p)return;
+  const id=B.id(p);ptEdit.stock.has(id)?ptEdit.stock.delete(id):ptEdit.stock.add(id);ptRender(ptEdit.brand);
+}
+function ptSetCat(ci,open,ev){
+  if(ev)ev.stopPropagation();
+  if(!ptEdit)return;
+  const B=PRICE_BRANDS[ptEdit.brand],cat=B.catOrder[ci];
+  B.list().filter(p=>(p.cat||'기타')===cat).forEach(p=>open?ptEdit.hid.delete(B.id(p)):ptEdit.hid.add(B.id(p)));
+  ptRender(ptEdit.brand);
+}
+function ptSetAll(open){
+  if(!ptEdit)return;
+  const B=PRICE_BRANDS[ptEdit.brand];
+  ptEdit.hid=open?new Set():new Set(B.list().map(B.id));
+  ptRender(ptEdit.brand);
+}
+function ptToggleSection(brand,ci){const B=PRICE_BRANDS[brand],o=B.sectionOpen(),cat=B.catOrder[ci];o[cat]=!o[cat];ptRender(brand);}
+async function ptSaveEdit(){
+  const E=ptEdit;if(!E)return;
+  const B=PRICE_BRANDS[E.brand],ids=new Set(B.list().map(B.id));
+  const hid=[...E.hid].filter(x=>ids.has(x)),stock=[...E.stock].filter(x=>ids.has(x));
+  if(hid.length===ids.size&&!confirm('모든 품목이 닫혀서 공유 단가표가 비게 됩니다. 그래도 저장할까요?'))return;
+  const key=ptVisKey(E.scope,E.client);
+  const vis=Object.assign({},ptKV(key)||{});vis[E.brand]=hid;
+  ptEdit=null;
+  const reqs=[kmSetKV(key,vis)];
+  const oldStock=[...ptStock(E.brand)].sort().join('\n');
+  if(oldStock!==stock.slice().sort().join('\n'))reqs.push(kmSetKV('stock:'+E.brand,stock));
+  ptRender(E.brand);
+  const res=await Promise.all(reqs);
+  if(res.every(Boolean))kmToast((E.client||'공통')+' 설정을 저장했습니다.');
+}
+async function ptResetClient(){
+  const E=ptEdit;if(!E||!E.client)return;
+  if(!confirm(`${E.client}의 따로 설정을 지우고 공통 설정을 따를까요?`))return;
+  const key=ptVisKey(E.scope,E.client);
+  const vis=Object.assign({},ptKV(key)||{});delete vis[E.brand];
+  ptEdit=null;
+  const req=kmSetKV(key,Object.keys(vis).length?vis:null);
+  ptRender(E.brand);
+  if(await req)kmToast('공통 설정을 따르도록 바꿨습니다.');
 }
 
-function renderPriceTable(){
-  const brand=priceManufacturer==='hansol'?'hansol':'yerim',B=PRICE_BRANDS[brand];
-  const el=document.getElementById('price-table-content');if(!el)return;
-  const q=(document.getElementById('price-search')?.value||'').toLowerCase();
+// ===== 단가표 그리기 (예림·한솔·필름 공통) =====
+function ptRenderTable(brand,elId,q){
+  const B=PRICE_BRANDS[brand],el=document.getElementById(elId);if(!el)return;
+  const tier=B.tiers?priceTier[brand]:null;
+  if(ptEdit&&(ptEdit.brand!==brand||ptEdit.client!==ptClient[B.scope]))ptEdit=null;
+  const editing=!!ptEdit,client=ptClient[B.scope],admin=mgIsAdmin();
+  const all=B.list(),hid=editing?ptEdit.hid:ptHidden(brand),stock=editing?ptEdit.stock:ptStock(brand);
+  const showHidden=editing||!!ptShowHidden[brand];
   const hasSearch=q.length>0;
-  const key=priceTabGrade;
-  if(yEdit&&(key!=='y'||yEdit.brand!==brand))yEdit=null;
-  const editing=!!yEdit;
-  const all=B.list();
-  const source=editing?all:priceVisibleFor(brand,key);
+  const match=p=>!q||p.name.toLowerCase().includes(q)||(B.showType&&(p.type||'').toLowerCase().includes(q))||(B.sub&&((MODEL_DB[p.key]||{}).name||'').toLowerCase().includes(q));
   const groups={};
-  source.forEach(p=>{
-    if(q&&!p.name.toLowerCase().includes(q)&&!(B.showType&&(p.type||'').toLowerCase().includes(q)))return;
-    const cat=p.cat||'기타';
-    (groups[cat]=groups[cat]||[]).push(p);
+  all.forEach((p,i)=>{
+    const id=B.id(p),off=hid.has(id);
+    if(off&&!showHidden)return;
+    if(!match(p))return;
+    (groups[p.cat||'기타']=groups[p.cat||'기타']||[]).push({p,i,off,st:stock.has(id)});
   });
+  const openN=all.filter(p=>!hid.has(B.id(p))).length,hiddenN=all.length-openN;
+  const stockN=all.filter(p=>stock.has(B.id(p))).length;
+  const who=client?kmEsc(client):'공통';
   let html='';
-  if(key==='y'){
-    const openN=editing?all.filter(p=>!yEdit.hid.has(B.id(p))).length:source.length;
-    html+=`<div class="pt-bar${editing?' edit':''}">
-      <div><b>Y단가 공개 품목 ${openN} / ${all.length}</b><div class="h">${editing?'눌러서 공개·닫기를 바꾸고 저장하세요':'닫아 둔 품목은 단가표와 공유 이미지에 나오지 않아요'}</div></div>
-      ${editing?`<div style="display:flex;gap:6px;flex-shrink:0"><button class="pt-mini" onclick="cancelYEdit()">취소</button><button class="pt-mini" style="background:var(--br);color:#fff" onclick="saveYEdit()">저장</button></div>`
-        :(mgIsAdmin()?`<button class="pt-mini" onclick="startYEdit()">공개 품목 편집</button>`:'')}
+  if(editing){
+    html+=`<div class="pt-bar edit">
+      <div style="min-width:0"><b>${who} · 공개 ${openN}/${all.length} · 재고 ${stockN}</b><div class="h">품목을 누르면 공개·닫기 · 오른쪽 '재고'를 누르면 재고 표시</div></div>
+      <div style="display:flex;gap:6px;flex-shrink:0"><button class="pt-mini" onclick="ptCancelEdit()">취소</button><button class="pt-mini pri" onclick="ptSaveEdit()">저장</button></div>
+    </div>
+    <div class="pt-tools" style="justify-content:space-between;margin:-2px 0 6px">
+      <span><button class="pt-link" onclick="ptSetAll(true)">전체 공개</button><span style="color:var(--km-line)"> | </span><button class="pt-link" onclick="ptSetAll(false)">전체 닫기</button></span>
+      ${ptHasOwn(brand,client)?`<button class="pt-link" onclick="ptResetClient()">공통 설정 따르기</button>`:''}
     </div>`;
+  }else{
+    const state=client&&!ptHasOwn(brand,client)?'따로 설정 없음 · 공통 설정을 따라요'
+      :(hiddenN?`닫힌 ${hiddenN}개는 공유 이미지에 안 나와요`:'모든 품목이 공유 이미지에 나와요');
+    html+=`<div class="pt-bar">
+      <div style="min-width:0"><b>${client?who+' 공유용':'공통'} · 공개 ${openN}/${all.length}</b><div class="h">${state}${stockN?` · 재고 ${stockN}`:''}</div></div>
+      ${admin?`<button class="pt-mini" onclick="ptStartEdit('${brand}')">편집</button>`:''}
+    </div>`;
+    if(hiddenN)html+=`<div class="pt-tools"><button class="pt-link" onclick="ptShowHidden['${brand}']=!ptShowHidden['${brand}'];ptRender('${brand}')">${ptShowHidden[brand]?'닫힌 품목 숨기기':'닫힌 품목도 보기'}</button></div>`;
   }
   if(!Object.keys(groups).length){el.innerHTML=html+`<div class="pt-empty">${hasSearch?'검색 결과 없음':'공개된 품목이 없습니다'}</div>`;return;}
+  const chev='<svg class="pt-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
   B.catOrder.forEach((cat,ci)=>{
     const items=groups[cat];if(!items)return;
     const color=B.catColor[cat]||'#1B3A5C',label=B.catLabel[cat]||cat;
-    const isOpen=editing||hasSearch||(B.sectionOpen()[cat]===true);
-    const catOpenN=editing?items.filter(p=>!yEdit.hid.has(B.id(p))).length:items.length;
+    const isOpen=hasSearch||B.sectionOpen()[cat]===true;
+    const live=items.filter(x=>!x.off);
+    const from=live.length?(B.fromPrefix||'')+Math.min(...live.map(x=>B.price(x.p,tier))).toLocaleString()+B.fromSuffix:'';
     html+=`<div class="pt-sec${isOpen?' open':''}">
-      <div class="pt-head" ${editing?'':`onclick="${B.toggleFn}(PRICE_BRANDS.${brand}.catOrder[${ci}])"`}>
-        <span class="pt-dot" style="background:${color}"></span><span class="pt-name">${label}</span><span class="pt-cnt">${editing?`${catOpenN}/${items.length} 공개`:`${items.length}종`}</span>
-        ${editing?`<span style="margin-left:auto;display:flex;gap:6px"><button class="pt-mini" onclick="setYCat(${ci},true)">모두 공개</button><button class="pt-mini" onclick="setYCat(${ci},false)">모두 닫기</button></span>`
-          :`<span class="pt-from">${Math.min(...items.map(p=>p[key])).toLocaleString()}${B.fromSuffix}</span><svg class="pt-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>`}
-      </div>
-      ${isOpen?items.map(p=>{
-        const off=editing&&yEdit.hid.has(B.id(p));
-        const typeTag=B.showType&&p.type&&p.type!=='일반'?`<span class="t">${p.type}</span>`:'';
-        return `<div class="pt-row${editing?' click':''}${off?' off':''}" ${editing?`onclick="toggleYItem(${all.indexOf(p)})"`:''}>
-          <div>${editing?'<span class="chk">✓</span>':''}<span class="n">${p.name}</span>${typeTag}</div>
-          ${editing?`<span class="st">${off?'닫힘':'공개'}</span>`:`<span class="p">${p[key].toLocaleString()}<small>원</small></span>`}
-        </div>`;}).join(''):''}
-    </div>`;
+      <div class="pt-head" onclick="ptToggleSection('${brand}',${ci})">
+        <span class="pt-dot" style="background:${color}"></span><span class="pt-name">${label}</span><span class="pt-cnt">${editing?`${live.length}/${items.length}`:`${live.length}종`}</span>
+        ${editing?`<span style="margin-left:auto;display:flex;gap:6px"><button class="pt-mini" onclick="ptSetCat(${ci},true,event)">공개</button><button class="pt-mini" onclick="ptSetCat(${ci},false,event)">닫기</button></span>`
+          :`<span class="pt-from">${from}</span>`}
+        ${chev}
+      </div>`;
+    if(isOpen){
+      let lastSub=null;
+      items.forEach(x=>{
+        if(B.sub&&x.p.sub!==lastSub){
+          lastSub=x.p.sub;const db=MODEL_DB[x.p.key]||{};
+          html+=`<div class="pt-sub"><span>${db.name||''}</span><span>롤 ${(db.roll||0).toLocaleString()} · 절단 ${(db.cut||0).toLocaleString()}</span></div>`;
+        }
+        const typeTag=B.showType&&x.p.type&&x.p.type!=='일반'?`<span class="t">${x.p.type}</span>`:'';
+        const right=editing?`<button class="stk${x.st?' on':''}" onclick="ptToggleStock(${x.i},event)">재고</button>`
+          :`<span class="p">${B.price(x.p,tier).toLocaleString()}<small>${B.unit}</small></span>`;
+        html+=`<div class="pt-row${editing?' click':''}${x.off?' off':''}"${editing?` onclick="ptToggleItem(${x.i})"`:''}>
+          <div>${editing?'<span class="chk">✓</span>':''}<span class="n">${x.p.name}</span>${typeTag}${!editing&&x.st?'<span class="stk-b">재고</span>':''}</div>${right}
+        </div>`;
+      });
+    }
+    html+='</div>';
   });
-  html+=`<div class="pt-note"><b>VAT 포함</b> · ${GRADE_LABEL[key]} · ${B.footer.replace(/^📐\s*/,'')}</div>`;
+  html+=`<div class="pt-note">${B.tiers?`<b>VAT 포함</b> · ${tierLabel(brand,tier)} · ${B.note}`:B.note}</div>`;
   el.innerHTML=html;
+}
+function renderPriceTable(){
+  const brand=ptBrandNow('door');
+  const seg=document.getElementById('price-tier-seg');
+  if(seg)seg.innerHTML=PRICE_TIERS[brand].map(([k,l])=>`<button class="${priceTier[brand]===k?'on':''}" onclick="setPriceTab('${k}')">${l}</button>`).join('');
+  const sel=document.getElementById('price-client');if(sel)sel.innerHTML=ptClientOptions('door');
+  ptRenderTable(brand,'price-table-content',(document.getElementById('price-search')?.value||'').toLowerCase());
+}
+function renderFilmPriceTable(){
+  const allBtn=document.getElementById('fp-allbtn');
+  if(allBtn)allBtn.textContent=FILM_PRICE_SECTIONS.every(s=>filmSectionOpen[s.key])?'모두 접기':'모두 펼치기';
+  const sel=document.getElementById('film-client');if(sel)sel.innerHTML=ptClientOptions('film');
+  ptRenderTable('film','film-price-content',(document.getElementById('fp-search')?.value||'').toLowerCase());
 }
 
 // ===== 데이터 탭 =====
@@ -3135,7 +3143,7 @@ function kmRefreshUI(){
   try{if(KM.tab==='stock')renderStock()}catch(e){}
   try{if(KM.tab==='data')renderData()}catch(e){}
   try{if(KM.tab==='home')kmRenderHome()}catch(e){}
-  try{if(KM.tab==='price'&&!yEdit)renderPriceTable()}catch(e){}
+  try{if(!ptEdit){if(KM.tab==='price')renderPriceTable();if(KM.tab==='film-price')renderFilmPriceTable();}}catch(e){}
 }
 
 async function kmLoad(){
