@@ -1013,7 +1013,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
 <div class="tp" id="tp-price">
   <div class="th"><div class="th-row">
     <div><div class="th-ttl" id="price-tab-title">예림 생산도어 단가표</div><div class="th-sub" id="price-tab-sub">SUPER 레이저도어 · 2025.06.15 기준</div></div>
-    <button class="th-btn" onclick="showShareView()">공유</button>
+    <div style="display:flex;gap:6px"><button class="th-btn" id="price-sum-btn" style="display:none" onclick="showSummaryShare()">요약</button><button class="th-btn" onclick="showShareView()">공유</button></div>
   </div></div>
   <div class="container" style="padding-top:14px;padding-bottom:80px;">
     <div class="pt-ctrl">
@@ -1032,6 +1032,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
     <div class="modal-bar">
       <button class="cls-btn" onclick="closeOvl('share-ovl')">‹ 뒤로</button>
       <h3 id="share-modal-title">예림 생산도어 단가표</h3>
+      <button id="share-copy-btn" onclick="copyShareText(this)" style="display:none;height:34px;padding:0 12px;margin-right:6px;background:#E8EBEE;border:none;border-radius:7px;font-size:13px;color:#1B3A5C;font-weight:700;cursor:pointer;">💬 글 복사</button>
       <button onclick="saveShareAsImage('share-parea', shareFileBaseName(), this)" style="height:34px;padding:0 12px;background:var(--or);border:none;border-radius:7px;font-size:13px;color:white;font-weight:700;cursor:pointer;">🖼 이미지 저장</button>
     </div>
     <div class="parea" id="share-parea"></div>
@@ -2122,13 +2123,18 @@ function ptShareHTML(brand){
 // 미리보기: A3 페이지를 화면 폭에 맞춰 축소해서 보여줌
 function ptFitPreview(elId){
   const el=document.getElementById(elId),page=el&&el.querySelector('.a3-page');if(!page)return;
-  const w=el.clientWidth||A3_W,s=Math.min(1,w/A3_W);
+  const pw=page.offsetWidth||A3_W,w=el.clientWidth||pw,s=Math.min(1,w/pw);
   page.style.transform=`scale(${s})`;page.style.transformOrigin='0 0';
   el.querySelector('.a3-fit').style.height=Math.ceil(page.offsetHeight*s)+'px';
 }
-function ptShowShare(ovlId,elId,brand){
+let shareMode='full'; // 'full' 전체 단가표 | 'summary' 등급별 요약
+function ptShowShare(ovlId,elId,brand,html){
   const el=document.getElementById(elId);
-  el.innerHTML=`<div class="a3-fit" style="overflow:hidden">${ptShareHTML(brand)}</div>`;
+  if(ovlId==='share-ovl'){
+    shareMode=html?'summary':'full';
+    const cb=document.getElementById('share-copy-btn');if(cb)cb.style.display=html?'':'none';
+  }
+  el.innerHTML=`<div class="a3-fit" style="overflow:hidden">${html||ptShareHTML(brand)}</div>`;
   document.getElementById(ovlId).classList.add('show');
   document.getElementById(ovlId).scrollTop=0;
   ptFitPreview(elId);requestAnimationFrame(()=>ptFitPreview(elId));
@@ -2139,7 +2145,65 @@ function showFilmShareView(){ptShowShare('film-share-ovl','film-share-parea','fi
 window.addEventListener('resize',()=>{ptFitPreview('share-parea');ptFitPreview('film-share-parea');});
 function shareFileBaseName(){
   const b=ptBrandNow('door'),c=ptClient.door;
-  return PRICE_BRANDS[b].short+'_생산도어_단가표_'+tierLabel(b,priceTier[b])+(c?'_'+c:'');
+  return PRICE_BRANDS[b].short+(shareMode==='summary'?'_요약단가표_':'_생산도어_단가표_')+tierLabel(b,priceTier[b])+(c?'_'+c:'');
+}
+
+// ===== 등급별 요약 단가표 (한솔: 시그니처·스페셜·엔트리 가격만, 휴대폰용) =====
+function ptSummaryData(brand){
+  const B=PRICE_BRANDS[brand],tier=priceTier[brand],stock=ptStock(brand);
+  const groups={};
+  ptVisibleItems(brand).forEach(p=>{(groups[p.cat||'기타']=groups[p.cat||'기타']||[]).push(p);});
+  return B.catOrder.filter(c=>groups[c]).map(cat=>{
+    const items=groups[cat],prices=items.map(p=>B.price(p,tier));
+    const lo=Math.min(...prices),hi=Math.max(...prices);
+    return {cat,label:B.catLabel[cat]||cat,color:B.catColor[cat]||'#1B3A5C',n:items.length,lo,hi,
+      stock:items.filter(p=>stock.has(B.id(p))).map(p=>p.name)};
+  });
+}
+function ptSummaryHTML(brand){
+  const B=PRICE_BRANDS[brand],tier=priceTier[brand],client=ptClient[B.scope],rows=ptSummaryData(brand);
+  const now=new Date(),dateStr=`${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,'0')}.${String(now.getDate()).padStart(2,'0')}`;
+  const won=(lo,hi)=>lo===hi?lo.toLocaleString():`${lo.toLocaleString()}~`;
+  const cards=rows.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:24px 26px;margin-bottom:14px;border-radius:18px;background:${r.color}12;border:2px solid ${r.color}33;border-left:12px solid ${r.color}">
+      <div style="min-width:0">
+        <div style="font-size:34px;font-weight:900;color:${r.color}">${r.label}</div>
+        <div style="font-size:17px;color:#5A6B7A;margin-top:4px">${r.n}종${r.stock.length?` · <span style="color:#1E7A48;font-weight:700">재고 ${r.stock.length}종</span>`:''}</div>
+        ${r.stock.length?`<div style="font-size:15px;color:#1E7A48;margin-top:4px;line-height:1.4">${r.stock.map(kmEsc).join(', ')}</div>`:''}
+      </div>
+      <div style="font-size:48px;font-weight:900;color:${r.color};white-space:nowrap">${won(r.lo,r.hi)}<span style="font-size:22px;font-weight:700;color:#8B95A1;margin-left:2px">원</span></div>
+    </div>`).join('');
+  return `<div class="a3-page" style="width:720px;box-sizing:border-box;padding:40px 34px 34px;background:#fff;font-family:'Noto Sans KR',sans-serif">
+    <div style="text-align:center;margin-bottom:26px">
+      <div style="font-size:32px;font-weight:900;color:#1B3A5C;letter-spacing:1px">${B.title.replace('단가표','단가')}</div>
+      <div style="display:inline-block;margin-top:10px;padding:4px 18px;border-radius:20px;background:#FFF0E8;color:#E8630A;font-size:20px;font-weight:800">${tierLabel(brand,tier)}</div>
+      ${client?`<div style="font-size:22px;font-weight:800;color:#E8630A;margin-top:8px">${kmEsc(client)} 전용</div>`:''}
+      <div style="font-size:16px;color:#5A6B7A;margin-top:10px">기준일 ${dateStr} · <b style="color:#2A6A2A">VAT 포함</b> · 1장 기준 · 제로조인트</div>
+    </div>
+    ${cards||'<div style="text-align:center;padding:40px;color:#7A8896;font-size:20px">공개된 품목이 없습니다</div>'}
+    ${B.shipNote?`<div style="margin-top:6px;padding:14px 18px;border-radius:14px;background:#FFF0E8;border:2px solid #E8A070;font-size:19px;font-weight:800;color:#C04010;text-align:center">🚚 ${B.shipNote}</div>`:''}
+    <div style="margin-top:20px;text-align:center;font-size:16px;color:#5A6B7A;line-height:1.7">㈜오션메이드 · 📞 041-534-7475<br>기업은행 332-135674-04-011</div>
+  </div>`;
+}
+function ptSummaryText(brand){
+  const B=PRICE_BRANDS[brand],tier=priceTier[brand],client=ptClient[B.scope];
+  const lines=[`[${B.title.replace('단가표','단가')}] ${tierLabel(brand,tier)} · VAT 포함 · 1장 기준`];
+  if(client)lines.push(`${client} 전용`);
+  ptSummaryData(brand).forEach(r=>lines.push(`· ${r.label} ${r.lo===r.hi?r.lo.toLocaleString():r.lo.toLocaleString()+'~'}원 (${r.n}종)`));
+  if(B.shipNote)lines.push(`※ ${B.shipNote}`);
+  lines.push('제로조인트 기준 · ㈜오션메이드 041-534-7475');
+  return lines.join('\n');
+}
+function showSummaryShare(){
+  const b=ptBrandNow('door');
+  ptShowShare('share-ovl','share-parea',b,ptSummaryHTML(b));
+}
+async function copyShareText(btn){
+  const t=ptSummaryText(ptBrandNow('door'));
+  let ok=false;
+  try{await navigator.clipboard.writeText(t);ok=true;}catch(e){
+    try{const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;left:-9999px';document.body.appendChild(ta);ta.select();ok=document.execCommand('copy');ta.remove();}catch(e2){}
+  }
+  if(ok){kmToast('복사했어요. 문자·카톡에 붙여넣으세요.');}else{prompt('아래 글을 복사하세요',t);}
 }
 function filmShareFileBaseName(){return '예림_인테리어필름_단가표'+(ptClient.film?'_'+ptClient.film:'');}
 
@@ -2188,12 +2252,14 @@ async function saveShareAsImage(elId,baseName,btnEl){
     const page=el.querySelector('.a3-page');
     if(page){ // A3 페이지는 축소하지 않은 원래 크기로 따로 그려서 저장
       holder=document.createElement('div');
-      holder.style.cssText=`position:fixed;left:-20000px;top:0;width:${A3_W}px;background:#fff`;
+      const pw=page.offsetWidth||A3_W;
+      holder.style.cssText=`position:fixed;left:-20000px;top:0;width:${pw}px;background:#fff`;
       target=page.cloneNode(true);target.style.transform='none';
       holder.appendChild(target);document.body.appendChild(holder);
     }
     let canvas;
-    try{canvas=await html2canvas(target,{scale:2,backgroundColor:'#ffffff',useCORS:true,width:page?A3_W:undefined,windowWidth:page?A3_W:undefined});}
+    const pw=page?(page.offsetWidth||A3_W):undefined;
+    try{canvas=await html2canvas(target,{scale:2,backgroundColor:'#ffffff',useCORS:true,width:pw,windowWidth:pw});}
     finally{if(holder)holder.remove();}
     const link=document.createElement('a');
     link.download=`${baseName}_${today()}.png`;
@@ -2235,6 +2301,7 @@ function setPriceManufacturer(m){
   priceManufacturer=m;ptEdit=null;
   document.getElementById('pm-yerim').classList.toggle('on',m==='yerim');
   document.getElementById('pm-hansol').classList.toggle('on',m==='hansol');
+  const sumBtn=document.getElementById('price-sum-btn');if(sumBtn)sumBtn.style.display=m==='hansol'?'':'none';
   const title=document.getElementById('price-tab-title'),sub=document.getElementById('price-tab-sub');
   const shareTitle=document.getElementById('share-modal-title');
   if(m==='yerim'){
