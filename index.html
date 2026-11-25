@@ -2053,10 +2053,7 @@ function ptShareHTML(brand){
       </div>`
     :`<div style="margin-top:10px;padding:8px 10px;background:#EEF8EE;border-radius:7px;border:1.5px solid #A8D4A8">
         <div style="font-size:10px;color:#2A6A2A;line-height:1.8">✅ <b>단가는 부가세 포함</b> · ${tierTxt} · 제로조인트 기준<br>📞 041-534-7475 · 기업은행 332-135674-04-011 (㈜오션메이드)</div>
-      </div>${B.shipNote?`
-      <div style="margin-top:6px;padding:8px 10px;background:#FFF0E8;border-radius:7px;border:1.5px solid #E8A070">
-        <div style="font-size:10.5px;color:#C04010;line-height:1.6">🚚 <b>${B.shipNote}</b></div>
-      </div>`:''}`;
+      </div>`;
   return `<div style="padding:12px 12px 20px;background:white;font-family:'Noto Sans KR',sans-serif;">
     <div style="text-align:center;padding-bottom:10px;margin-bottom:12px;border-bottom:2.5px solid ${B.shareLine}">
       <div style="font-size:15px;font-weight:900;color:#1B3A5C;letter-spacing:1.5px">${B.title}${tierTxt?` <span style="font-size:12px;color:#E8630A">(${tierTxt})</span>`:''}</div>
@@ -2068,6 +2065,7 @@ function ptShareHTML(brand){
         <span style="font-size:10px;color:#ccc">|</span>
         <span style="font-size:10px;color:#5A6B7A">㈜오션메이드</span>
       </div>
+      ${B.shipNote?`<div style="display:inline-block;margin-top:7px;padding:3px 12px;background:#FFF0E8;border:1.5px solid #E8A070;border-radius:20px;font-size:11px;font-weight:800;color:#C04010">🚚 ${B.shipNote}</div>`:''}
     </div>
     ${sections?`<div style="columns:2;column-gap:8px;column-fill:balance">${sections}</div>`:'<div style="text-align:center;padding:30px;color:#7A8896;font-size:12px">공개된 품목이 없습니다</div>'}
     ${legend}${foot}
