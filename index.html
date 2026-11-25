@@ -2123,9 +2123,12 @@ function ptShareHTML(brand){
 // 미리보기: A3 페이지를 화면 폭에 맞춰 축소해서 보여줌
 function ptFitPreview(elId){
   const el=document.getElementById(elId),page=el&&el.querySelector('.a3-page');if(!page)return;
-  const pw=page.offsetWidth||A3_W,w=el.clientWidth||pw,s=Math.min(1,w/pw);
+  // 여백을 뺀 실제 안쪽 폭에 맞춰 같은 비율로 축소 (가로·세로 비율 유지)
+  const cs=getComputedStyle(el),inner=el.clientWidth-parseFloat(cs.paddingLeft||0)-parseFloat(cs.paddingRight||0);
+  const pw=page.offsetWidth||A3_W,w=inner>0?inner:pw,s=Math.min(1,w/pw);
   page.style.transform=`scale(${s})`;page.style.transformOrigin='0 0';
-  el.querySelector('.a3-fit').style.height=Math.ceil(page.offsetHeight*s)+'px';
+  const fit=el.querySelector('.a3-fit');
+  fit.style.width=Math.floor(pw*s)+'px';fit.style.height=Math.ceil(page.offsetHeight*s)+'px';fit.style.margin='0 auto';
 }
 let shareMode='full'; // 'full' 전체 단가표 | 'summary' 등급별 간단 단가표
 function ptShowShare(ovlId,elId,brand,html){
@@ -2172,16 +2175,17 @@ function ptSummaryHTML(brand){
       </div>
       <div style="font-size:48px;font-weight:900;color:${r.color};white-space:nowrap">${won(r.lo,r.hi)}<span style="font-size:22px;font-weight:700;color:#8B95A1;margin-left:2px">원</span></div>
     </div>`).join('');
-  return `<div class="a3-page" style="width:720px;box-sizing:border-box;padding:40px 34px 34px;background:#fff;font-family:'Noto Sans KR',sans-serif">
+  // 휴대폰 사진 비율 4:5 (720×900) · 내용이 많으면 아래로 늘어남
+  return `<div class="a3-page" style="width:720px;min-height:900px;box-sizing:border-box;padding:44px 34px 34px;background:#fff;font-family:'Noto Sans KR',sans-serif;display:flex;flex-direction:column;justify-content:space-between">
     <div style="text-align:center;margin-bottom:26px">
       <div style="font-size:32px;font-weight:900;color:#1B3A5C;letter-spacing:1px">${B.title.replace('단가표','단가')}</div>
       <div style="display:inline-block;margin-top:10px;padding:4px 18px;border-radius:20px;background:#FFF0E8;color:#E8630A;font-size:20px;font-weight:800">${tierLabel(brand,tier)}</div>
       ${client?`<div style="font-size:22px;font-weight:800;color:#E8630A;margin-top:8px">${kmEsc(client)} 전용</div>`:''}
       <div style="font-size:16px;color:#5A6B7A;margin-top:10px">기준일 ${dateStr} · <b style="color:#2A6A2A">VAT 포함</b> · 1장 기준 · 제로조인트</div>
     </div>
-    ${cards||'<div style="text-align:center;padding:40px;color:#7A8896;font-size:20px">공개된 품목이 없습니다</div>'}
-    ${B.shipNote?`<div style="margin-top:6px;padding:14px 18px;border-radius:14px;background:#FFF0E8;border:2px solid #E8A070;font-size:19px;font-weight:800;color:#C04010;text-align:center">🚚 ${B.shipNote}</div>`:''}
-    <div style="margin-top:20px;text-align:center;font-size:16px;color:#5A6B7A;line-height:1.7">㈜오션메이드 · 📞 041-534-7475<br>기업은행 332-135674-04-011</div>
+    <div>${cards||'<div style="text-align:center;padding:40px;color:#7A8896;font-size:20px">공개된 품목이 없습니다</div>'}</div>
+    <div>${B.shipNote?`<div style="margin-top:6px;padding:14px 18px;border-radius:14px;background:#FFF0E8;border:2px solid #E8A070;font-size:19px;font-weight:800;color:#C04010;text-align:center">🚚 ${B.shipNote}</div>`:''}
+    <div style="margin-top:20px;text-align:center;font-size:16px;color:#5A6B7A;line-height:1.7">㈜오션메이드 · 📞 041-534-7475<br>기업은행 332-135674-04-011</div></div>
   </div>`;
 }
 function ptSummaryText(brand){
