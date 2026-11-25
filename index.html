@@ -1013,7 +1013,7 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--br);outline-offset:
 <div class="tp" id="tp-price">
   <div class="th"><div class="th-row">
     <div><div class="th-ttl" id="price-tab-title">예림 생산도어 단가표</div><div class="th-sub" id="price-tab-sub">SUPER 레이저도어 · 2025.06.15 기준</div></div>
-    <div style="display:flex;gap:6px"><button class="th-btn" id="price-sum-btn" style="display:none" onclick="showSummaryShare()">요약</button><button class="th-btn" onclick="showShareView()">공유</button></div>
+    <div style="display:flex;gap:6px"><button class="th-btn" id="price-sum-btn" style="display:none" onclick="showSummaryShare()">간단</button><button class="th-btn" onclick="showShareView()">공유</button></div>
   </div></div>
   <div class="container" style="padding-top:14px;padding-bottom:80px;">
     <div class="pt-ctrl">
@@ -2127,7 +2127,7 @@ function ptFitPreview(elId){
   page.style.transform=`scale(${s})`;page.style.transformOrigin='0 0';
   el.querySelector('.a3-fit').style.height=Math.ceil(page.offsetHeight*s)+'px';
 }
-let shareMode='full'; // 'full' 전체 단가표 | 'summary' 등급별 요약
+let shareMode='full'; // 'full' 전체 단가표 | 'summary' 등급별 간단 단가표
 function ptShowShare(ovlId,elId,brand,html){
   const el=document.getElementById(elId);
   if(ovlId==='share-ovl'){
@@ -2145,10 +2145,10 @@ function showFilmShareView(){ptShowShare('film-share-ovl','film-share-parea','fi
 window.addEventListener('resize',()=>{ptFitPreview('share-parea');ptFitPreview('film-share-parea');});
 function shareFileBaseName(){
   const b=ptBrandNow('door'),c=ptClient.door;
-  return PRICE_BRANDS[b].short+(shareMode==='summary'?'_요약단가표_':'_생산도어_단가표_')+tierLabel(b,priceTier[b])+(c?'_'+c:'');
+  return PRICE_BRANDS[b].short+(shareMode==='summary'?'_간단단가표_':'_생산도어_단가표_')+tierLabel(b,priceTier[b])+(c?'_'+c:'');
 }
 
-// ===== 등급별 요약 단가표 (한솔: 시그니처·스페셜·엔트리 가격만, 휴대폰용) =====
+// ===== 등급별 간단 단가표 (한솔: 시그니처·스페셜·엔트리 가격만, 휴대폰용) =====
 function ptSummaryData(brand){
   const B=PRICE_BRANDS[brand],tier=priceTier[brand],stock=ptStock(brand);
   const groups={};
