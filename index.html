@@ -2183,9 +2183,9 @@ function ptSummaryHTML(brand){
       ${client?`<div style="font-size:22px;font-weight:800;color:#E8630A;margin-top:8px">${kmEsc(client)} 전용</div>`:''}
       <div style="font-size:16px;color:#5A6B7A;margin-top:10px">기준일 ${dateStr} · <b style="color:#2A6A2A">VAT 포함</b> · 1장 기준 · 제로조인트</div>
     </div>
-    <div>${cards||'<div style="text-align:center;padding:40px;color:#7A8896;font-size:20px">공개된 품목이 없습니다</div>'}</div>
-    <div>${B.shipNote?`<div style="margin-top:6px;padding:14px 18px;border-radius:14px;background:#FFF0E8;border:2px solid #E8A070;font-size:19px;font-weight:800;color:#C04010;text-align:center">🚚 ${B.shipNote}</div>`:''}
-    <div style="margin-top:20px;text-align:center;font-size:16px;color:#5A6B7A;line-height:1.7">㈜오션메이드 · 📞 041-534-7475<br>기업은행 332-135674-04-011</div></div>
+    <div>${B.shipNote?`<div style="margin-bottom:16px;padding:14px 18px;border-radius:14px;background:#FFF0E8;border:2px solid #E8A070;font-size:19px;font-weight:800;color:#C04010;text-align:center">🚚 ${B.shipNote}</div>`:''}${cards||'<div style="text-align:center;padding:40px;color:#7A8896;font-size:20px">공개된 품목이 없습니다</div>'}</div>
+    <div>
+    <div style="text-align:center;font-size:16px;color:#5A6B7A;line-height:1.7">㈜오션메이드 · 📞 041-534-7475<br>기업은행 332-135674-04-011</div></div>
   </div>`;
 }
 function ptSummaryText(brand){
